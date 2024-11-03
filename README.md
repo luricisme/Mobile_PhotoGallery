@@ -1,1 +1,2 @@
-# photo_gallery_mobile_app
+# PHOTO GALLERY MOBILE APPLICATION
+A project of MOBILE in HCMUS
