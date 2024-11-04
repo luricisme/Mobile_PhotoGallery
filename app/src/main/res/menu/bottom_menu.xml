@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/home"
+        android:title="Home"
+        android:icon="@drawable/ic_home"/>
+
+    <item
+        android:id="@+id/album"
+        android:title="Album"
+        android:icon="@drawable/ic_album_thick"/>
+
+    <item
+        android:id="@+id/fab"
+        android:title=""
+        android:enabled="false"/>
+
+    <item
+        android:id="@+id/favorite"
+        android:title="Favorite"
+        android:icon="@drawable/ic_favorite_thick"/>
+
+    <item
+        android:id="@+id/more"
+        android:title="More"
+        android:icon="@drawable/ic_more_thick"/>
+</menu>
