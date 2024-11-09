@@ -2,6 +2,7 @@ package com.example.photo_gallery_app;
 
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 
 import androidx.activity.EdgeToEdge;
@@ -17,7 +18,7 @@ import androidx.appcompat.widget.Toolbar;
 
 import com.example.photo_gallery_app.databinding.ActivityMainBinding;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements MainCallbacks{
     ActivityMainBinding binding;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -84,5 +85,15 @@ public class MainActivity extends AppCompatActivity {
         fragmentTransaction.replace(R.id.frame_layout, fragment);
         fragmentTransaction.commit();
         getSupportActionBar().setTitle(title);
+    }
+
+    @Override
+    public void onMsgFromFragToMain(String sender, String msg) {
+        if (sender.equals("MORE-FRAG")) {
+            try { // forward blue-data to redFragment using its callback method
+                replaceFragment(new AboutFragment(), "About");
+            }
+            catch (Exception e) { Log.e("ERROR", "onStrFromFragToMain " + e.getMessage()); }
+        }
     }
 }

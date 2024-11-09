@@ -1,17 +1,49 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/white"
+    android:orientation="vertical"
     tools:context=".MoreFragment">
 
-    <!-- TODO: Update blank fragment layout -->
     <TextView
+        android:id="@+id/tvEmpty"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:text="More"
-        android:gravity="center"
-        android:textSize="30sp"/>
+        android:layout_height="71dp" />
 
-</FrameLayout>
+    <TextView
+        android:id="@+id/txtChangePass"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="20dp"
+        android:layout_marginVertical="10dp"
+        android:drawableLeft="@drawable/more_change_password"
+        android:drawablePadding="8dp"
+        android:text="Change Password"
+        android:textSize="20dp" />
+
+    <TextView
+        android:id="@+id/txtLanguage"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="20dp"
+        android:layout_marginVertical="10dp"
+        android:drawableLeft="@drawable/more_language"
+        android:drawablePadding="8dp"
+        android:text="Language"
+        android:textSize="20dp" />
+
+    <TextView
+        android:id="@+id/txtAbout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="20dp"
+        android:layout_marginVertical="10dp"
+        android:drawableLeft="@drawable/more_about"
+        android:drawablePadding="8dp"
+        android:text="About"
+        android:textSize="20dp" />
+
+</LinearLayout>
