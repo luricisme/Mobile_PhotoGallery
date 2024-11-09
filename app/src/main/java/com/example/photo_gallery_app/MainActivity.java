@@ -1,5 +1,7 @@
 package com.example.photo_gallery_app;
 
+import static android.content.ContentValues.TAG;
+
 import android.Manifest;
 
 import android.content.Intent;
@@ -124,11 +126,7 @@ public class MainActivity extends AppCompatActivity implements MainCallbacks{
     // Hàm mở camera
     private void openCamera() {
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
-            startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
-        } else {
-            Toast.makeText(MainActivity.this, "Camera không khả dụng", Toast.LENGTH_SHORT).show();
-        }
+        startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
     }
 
     // Xử lý kết quả yêu cầu quyền truy cập
