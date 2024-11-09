@@ -4,8 +4,10 @@ import static android.content.ContentValues.TAG;
 
 import android.Manifest;
 
+import android.content.ContentValues;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
@@ -32,6 +34,7 @@ public class MainActivity extends AppCompatActivity implements MainCallbacks{
     ActivityMainBinding binding;
 
     private static final int REQUEST_IMAGE_CAPTURE = 1;
+    private Uri imageUri;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -92,7 +95,7 @@ public class MainActivity extends AppCompatActivity implements MainCallbacks{
             if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.CAMERA)
                     != PackageManager.PERMISSION_GRANTED) {
                 ActivityCompat.requestPermissions(MainActivity.this,
-                        new String[]{Manifest.permission.CAMERA}, 100);
+                        new String[]{Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE}, 100);
             } else {
                 openCamera();
             }
@@ -125,8 +128,33 @@ public class MainActivity extends AppCompatActivity implements MainCallbacks{
 
     // Hàm mở camera
     private void openCamera() {
+        ContentValues values = new ContentValues();
+        values.put(MediaStore.Images.Media.TITLE, "New Picture");
+        values.put(MediaStore.Images.Media.DESCRIPTION, "Image from Camera");
+
+        imageUri = getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values); // Tạo URI cho hình ảnh
+
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri); // Đặt URI cho hình ảnh để lưu
+
         startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
+    }
+
+    // Xử lý kết quả chụp hình
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
+            // Sau khi chụp hình, ảnh sẽ được lưu vào album
+            if (imageUri != null) {
+                Toast.makeText(MainActivity.this, "Hình ảnh đã được lưu vào album", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(MainActivity.this, "Có lỗi khi lưu hình ảnh", Toast.LENGTH_SHORT).show();
+            }
+        } else {
+            Toast.makeText(MainActivity.this, "Chụp hình không thành công", Toast.LENGTH_SHORT).show();
+        }
     }
 
     // Xử lý kết quả yêu cầu quyền truy cập
