@@ -68,6 +68,7 @@ public class MainActivity extends AppCompatActivity {
             else if(itemId == R.id.more){
                 replaceFragment(new MoreFragment(), "More");
             }
+            
 
             return true;
         });
