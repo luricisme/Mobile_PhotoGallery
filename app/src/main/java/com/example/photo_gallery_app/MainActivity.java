@@ -1,12 +1,17 @@
 package com.example.photo_gallery_app;
 
 import static android.content.ContentValues.TAG;
-
 import android.Manifest;
-
 import android.content.ContentValues;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import static androidx.core.app.PendingIntentCompat.getActivity;
+import android.content.ContentUris;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.content.pm.PackageManager;
+import android.database.Cursor;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -14,8 +19,16 @@ import android.provider.MediaStore;
 import android.util.Log;
 import android.view.Menu;
 import android.widget.Toast;
-
+import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ImageView;
+import android.widget.ListView;
+import android.widget.Toast;
+import android.Manifest;
 import androidx.activity.EdgeToEdge;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -26,16 +39,25 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.appcompat.widget.Toolbar;
-
+import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import com.example.photo_gallery_app.databinding.ActivityMainBinding;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import java.util.ArrayList;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements MainCallbacks{
     ActivityMainBinding binding;
-
     private static final int REQUEST_IMAGE_CAPTURE = 1;
     private Uri imageUri;
+    public LoadImageFromDevice loadImageFromDevice = new LoadImageFromDevice();
+    //private RecyclerView recyclerView;
+    private ImageAdapter imageAdapter;
+    private List<String> ds = new ArrayList<>();
 
+    // Định nghĩa các đối tượng Fragment tĩnh
+    private static final HomeFragment homeFragment = new HomeFragment();
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 //        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
@@ -50,8 +72,26 @@ public class MainActivity extends AppCompatActivity implements MainCallbacks{
         setSupportActionBar(toolbar);
 
         // Mặc định ban đầu là HomeFragment
-        replaceFragment(new HomeFragment(), "Home");
+        replaceFragment(homeFragment, "Home");
         binding.bottomNavigationView.setBackground(null);
+
+
+
+
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
+                    999);
+        }
+        else {
+
+            //loadImages();
+        }
+
+
+
+
 
         binding.bottomNavigationView.setOnItemSelectedListener(item -> {
 //            switch(item.getItemId()){
@@ -73,7 +113,7 @@ public class MainActivity extends AppCompatActivity implements MainCallbacks{
 //            }
             int itemId = item.getItemId();
             if(itemId == R.id.home){
-                replaceFragment(new HomeFragment(), "Home");
+                replaceFragment(homeFragment, "Home");
             }
             else if(itemId == R.id.album)
             {
@@ -85,6 +125,7 @@ public class MainActivity extends AppCompatActivity implements MainCallbacks{
             else if(itemId == R.id.more){
                 replaceFragment(new MoreFragment(), "More");
             }
+            
 
             return true;
         });
@@ -100,6 +141,31 @@ public class MainActivity extends AppCompatActivity implements MainCallbacks{
                 openCamera();
             }
         });
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == 999) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // Đã cấp quyền, tiếp tục thực hiện hành động
+                Toast.makeText(this, "Quyền thông qua", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(this, "Quyền bị từ chối", Toast.LENGTH_SHORT).show();
+            }
+        }
+
+        if (requestCode == 100) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                openCamera();
+            } else {
+                Toast.makeText(MainActivity.this, "Cần quyền camera để sử dụng chức năng này", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
+    public void Load(){
+        loadImageFromDevice.loadImages(this, ds, imageAdapter, homeFragment.recyclerView);
     }
 
     @Override
@@ -154,19 +220,6 @@ public class MainActivity extends AppCompatActivity implements MainCallbacks{
             }
         } else {
             Toast.makeText(MainActivity.this, "Chụp hình không thành công", Toast.LENGTH_SHORT).show();
-        }
-    }
-
-    // Xử lý kết quả yêu cầu quyền truy cập
-    @Override
-    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == 100) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                openCamera();
-            } else {
-                Toast.makeText(MainActivity.this, "Cần quyền camera để sử dụng chức năng này", Toast.LENGTH_SHORT).show();
-            }
         }
     }
 }
