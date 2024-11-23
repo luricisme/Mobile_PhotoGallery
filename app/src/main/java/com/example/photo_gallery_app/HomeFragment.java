@@ -28,7 +28,6 @@ public class HomeFragment extends Fragment {
             mainActivity.Load();
         }
 
-
         return view;
     }
 }

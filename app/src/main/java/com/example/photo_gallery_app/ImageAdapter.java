@@ -1,6 +1,7 @@
 package com.example.photo_gallery_app;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.view.LayoutInflater;
@@ -42,6 +43,14 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHol
 
         holder.imvThem.setImageURI(Uri.parse(imagePath));  // Nếu là URI
         //holder.imvThem.setImageBitmap(BitmapFactory.decodeFile(imagePath)); // Nếu là đường dẫn file
+
+        holder.imvThem.setOnClickListener(v -> {
+            // Ở đây mở một activity mới để hiển thị ảnh chi tiết
+            Intent intent = new Intent(context, ImageDetailActivity.class);
+            intent.putExtra("imagePath", imagePath);
+            context.startActivity(intent);
+        });
+
     }
 
     @Override
