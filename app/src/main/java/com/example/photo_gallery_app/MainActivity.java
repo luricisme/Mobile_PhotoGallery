@@ -1,47 +1,22 @@
 package com.example.photo_gallery_app;
 
-import static android.content.ContentValues.TAG;
 import android.Manifest;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import static androidx.core.app.PendingIntentCompat.getActivity;
-import android.content.ContentUris;
-import android.content.Context;
-import android.content.DialogInterface;
-import android.content.pm.PackageManager;
-import android.database.Cursor;
-import android.graphics.BitmapFactory;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.Menu;
 import android.widget.Toast;
-import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.View;
-import android.widget.AdapterView;
-import android.widget.ImageView;
-import android.widget.ListView;
-import android.widget.Toast;
-import android.Manifest;
-import androidx.activity.EdgeToEdge;
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.appcompat.widget.Toolbar;
-import androidx.recyclerview.widget.GridLayoutManager;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 import com.example.photo_gallery_app.databinding.ActivityMainBinding;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import java.util.ArrayList;
@@ -75,9 +50,6 @@ public class MainActivity extends AppCompatActivity implements MainCallbacks{
         replaceFragment(homeFragment, "Home");
         binding.bottomNavigationView.setBackground(null);
 
-
-
-
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)
                 != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this,
@@ -85,32 +57,10 @@ public class MainActivity extends AppCompatActivity implements MainCallbacks{
                     999);
         }
         else {
-
             //loadImages();
         }
 
-
-
-
-
         binding.bottomNavigationView.setOnItemSelectedListener(item -> {
-//            switch(item.getItemId()){
-//                case R.id.home:
-//                    replaceFragment(new HomeFragment());
-//                    break;
-//
-//                case R.id.album:
-//                    replaceFragment(new AlbumFragment());
-//                    break;
-//
-//                case R.id.favorite:
-//                    replaceFragment(new FavoriteFragment());
-//                    break;
-//
-//                case R.id.more:
-//                    replaceFragment(new MoreFragment());
-//                    break;
-//            }
             int itemId = item.getItemId();
             if(itemId == R.id.home){
                 replaceFragment(homeFragment, "Home");
@@ -125,7 +75,6 @@ public class MainActivity extends AppCompatActivity implements MainCallbacks{
             else if(itemId == R.id.more){
                 replaceFragment(new MoreFragment(), "More");
             }
-            
 
             return true;
         });
@@ -179,13 +128,15 @@ public class MainActivity extends AppCompatActivity implements MainCallbacks{
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
         fragmentTransaction.replace(R.id.frame_layout, fragment);
         fragmentTransaction.commit();
-        getSupportActionBar().setTitle(title);
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setTitle(title);
+        }
     }
 
     @Override
     public void onMsgFromFragToMain(String sender, String msg) {
         if (sender.equals("MORE-FRAG")) {
-            try { // forward blue-data to redFragment using its callback method
+            try {
                 replaceFragment(new AboutFragment(), "About");
             }
             catch (Exception e) { Log.e("ERROR", "onStrFromFragToMain " + e.getMessage()); }
