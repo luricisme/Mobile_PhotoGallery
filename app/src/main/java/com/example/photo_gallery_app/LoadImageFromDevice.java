@@ -6,6 +6,7 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.provider.MediaStore;
 import android.util.Log;
+import android.widget.Toast;
 
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -15,43 +16,88 @@ import java.util.List;
 
 public class LoadImageFromDevice {
 
-    public void loadImages(Context context, List<String> ds, ImageAdapter imageAdapter, RecyclerView recyclerView) {
+    private final DatabaseHandler databaseHandler;
+
+    // Constructor để nhận DatabaseHandler
+    public LoadImageFromDevice(Context context) {
+        databaseHandler = new DatabaseHandler(context);
+    }
+
+    // Lấy ảnh từ MediaStore và lưu vào database nếu chưa có
+    public void loadImagesFromDevice(Context context) {
         try {
-            ds.clear();
+            databaseHandler.deleteAllPhotos();
+            //databaseHandler.clearDeletedPhotos();
             String[] projection = {
                     MediaStore.Images.ImageColumns._ID,
                     MediaStore.Images.ImageColumns.DISPLAY_NAME,
+                    MediaStore.Images.ImageColumns.DATE_TAKEN,
                     MediaStore.Images.ImageColumns.DATA,
+                    MediaStore.Images.ImageColumns.SIZE,
             };
 
-            Cursor cursor = context.getContentResolver().query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, projection, null, null, null);
+            Cursor cursor = context.getContentResolver().query(
+                    MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                    projection,
+                    null,
+                    null,
+                    null
+            );
+
             if (cursor != null && cursor.getCount() > 0) {
-                Log.d("MainActivity", "Đã lấy được dữ liệu từ MediaStore"); // log kiểm tra
-                int idColumn = cursor.getColumnIndexOrThrow(MediaStore.Images.Media._ID);
+                Log.d("LoadImageFromDevice", "Đã lấy được dữ liệu từ MediaStore");
+                int idColumn = cursor.getColumnIndexOrThrow(MediaStore.Images.ImageColumns._ID);
+                int nameColumn = cursor.getColumnIndexOrThrow(MediaStore.Images.ImageColumns.DISPLAY_NAME);
+                int dateColumn = cursor.getColumnIndexOrThrow(MediaStore.Images.ImageColumns.DATE_TAKEN);
+                int pathColumn = cursor.getColumnIndexOrThrow(MediaStore.Images.ImageColumns.DATA);
+                int sizeColumn = cursor.getColumnIndexOrThrow(MediaStore.Images.ImageColumns.SIZE);
+
+
                 cursor.moveToFirst();
                 while (!cursor.isAfterLast()) {
                     long id = cursor.getLong(idColumn);
+
                     Uri contentUri = ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id);
-                    ds.add(contentUri.toString());
+
+                    String name = cursor.getString(nameColumn);
+                    String date = cursor.getString(dateColumn); // Thời gian tạo
+                    String filePath = contentUri.toString();
+                    long size = cursor.getLong(sizeColumn);
+
+                    // Kiểm tra và thêm vào database nếu chưa tồn tại
+                    databaseHandler.addPhoto(name, date, null, "Default Album", 0, filePath, size);
+
                     cursor.moveToNext();
                 }
                 cursor.close();
             } else {
-                Log.e("MainActivity", "Không có ảnh hoặc cursor null"); // log kiểm tra lỗi
+                Log.e("LoadImageFromDevice", "Không có ảnh hoặc cursor null");
             }
+        } catch (Exception e) {
+            Log.e("LoadImageFromDevice", "Lỗi khi loadImagesFromDevice(): " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
 
+    // Lấy ảnh từ database và hiển thị lên RecyclerView
+    public void loadImagesFromDatabase(Context context, List<String> ds, ImageAdapter imageAdapter, RecyclerView recyclerView) {
+        try {
+            ds.clear();
+            List<String> photoPaths = databaseHandler.getAllPhotoPaths();
+            ds.addAll(photoPaths);
 
             if (recyclerView != null) {
                 recyclerView.setLayoutManager(new LinearLayoutManager(context));
                 imageAdapter = new ImageAdapter(context, ds);
                 recyclerView.setAdapter(imageAdapter);
+
+                Toast.makeText(context, "sucess", Toast.LENGTH_SHORT).show();
             } else {
-                Log.e("MainActivity", "recyclerView null"); // log nếu recyclerView không tồn tại
+                Log.e("LoadImageFromDevice", "recyclerView null");
             }
         } catch (Exception e) {
-            Log.e("MainActivity", "Lỗi khi loadImages(): " + e.getMessage()); // log lỗi chi tiết
+            Log.e("LoadImageFromDevice", "Lỗi khi loadImagesFromDatabase(): " + e.getMessage());
             e.printStackTrace();
         }
     }
-
 }
