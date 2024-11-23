@@ -26,7 +26,7 @@ public class MainActivity extends AppCompatActivity implements MainCallbacks{
     ActivityMainBinding binding;
     private static final int REQUEST_IMAGE_CAPTURE = 1;
     private Uri imageUri;
-    public LoadImageFromDevice loadImageFromDevice = new LoadImageFromDevice();
+    public LoadImageFromDevice loadImageFromDevice = new LoadImageFromDevice(this);
     //private RecyclerView recyclerView;
     private ImageAdapter imageAdapter;
     private List<String> ds = new ArrayList<>();
@@ -114,7 +114,8 @@ public class MainActivity extends AppCompatActivity implements MainCallbacks{
     }
 
     public void Load(){
-        loadImageFromDevice.loadImages(this, ds, imageAdapter, homeFragment.recyclerView);
+        loadImageFromDevice.loadImagesFromDevice((this));
+        loadImageFromDevice.loadImagesFromDatabase(this, ds, imageAdapter, homeFragment.recyclerView);
     }
 
     @Override
