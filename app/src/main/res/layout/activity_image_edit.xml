@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <!-- Header để quay về hoặc Save -->
+    <RelativeLayout
+        android:id="@+id/editHeader"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_alignParentTop="true"
+        android:background="#C5000000"
+        android:orientation="horizontal"
+        android:paddingStart="10dp"
+        android:paddingEnd="30dp">
+
+        <ImageButton
+            android:id="@+id/btnBack"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentTop="true"
+            android:background="@android:color/transparent"
+            android:tint="#B3FFFFFF"
+            app:srcCompat="@drawable/ic_back" />
+
+        <TextView
+            android:id="@+id/txtSave"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentEnd="true"
+            android:gravity="center"
+            android:text="Save"
+            android:textColor="#B3FFFFFF"
+            android:textSize="20sp" />
+
+    </RelativeLayout>
+
+    <!-- Ảnh đang chọn chỉnh sửa -->
+    <ImageView
+        android:id="@+id/imageViewEdit"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@+id/editHeader"
+        android:layout_above="@+id/editTools"
+        android:scaleType="fitCenter" />
+
+    <!-- Thanh công cụ chỉnh sửa -->
+    <LinearLayout
+        android:id="@+id/editTools"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_alignParentBottom="true"
+        android:background="#C5000000"
+        android:orientation="horizontal"
+        android:paddingHorizontal="20dp">
+
+        <ImageButton
+            android:id="@+id/btnCrop"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@android:color/transparent"
+            android:tint="#B3FFFFFF"
+            app:srcCompat="@drawable/ic_crop" />
+
+        <ImageButton
+            android:id="@+id/btnFilter"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@android:color/transparent"
+            android:tint="#B3FFFFFF"
+            app:srcCompat="@drawable/ic_filter" />
+
+        <ImageButton
+            android:id="@+id/btnText"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@android:color/transparent"
+            android:tint="#B3FFFFFF"
+            app:srcCompat="@drawable/ic_back" />
+
+    </LinearLayout>
+</RelativeLayout>
