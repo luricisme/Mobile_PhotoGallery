@@ -65,7 +65,7 @@ public class LoadImageFromDevice {
                     long size = cursor.getLong(sizeColumn);
 
                     // Kiểm tra và thêm vào database nếu chưa tồn tại
-                    databaseHandler.addPhoto(name, date, null, "Default Album", 0, filePath, size);
+                    databaseHandler.addPhoto(name, date, null, 0, 0, filePath, size, null);
 
                     cursor.moveToNext();
                 }
@@ -98,4 +98,25 @@ public class LoadImageFromDevice {
             e.printStackTrace();
         }
     }
+
+    // Lấy ảnh từ database và hiển thị lên RecyclerView
+    public void loadImagesFavoriteFromDatabase(Context context, List<String> ds, ImageAdapter imageAdapter, RecyclerView recyclerView) {
+        try {
+            ds.clear();
+            List<String> photoPaths = databaseHandler.getFavoritePhotoPaths();
+            ds.addAll(photoPaths);
+
+            if (recyclerView != null) {
+                recyclerView.setLayoutManager(new LinearLayoutManager(context));
+                imageAdapter = new ImageAdapter(context, ds);
+                recyclerView.setAdapter(imageAdapter);
+            } else {
+                Log.e("LoadImageFromDevice", "recyclerView null");
+            }
+        } catch (Exception e) {
+            Log.e("LoadImageFromDevice", "Lỗi khi loadImagesFromDatabase(): " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
 }
