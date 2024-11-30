@@ -90,8 +90,6 @@ public class LoadImageFromDevice {
                 recyclerView.setLayoutManager(new LinearLayoutManager(context));
                 imageAdapter = new ImageAdapter(context, ds);
                 recyclerView.setAdapter(imageAdapter);
-
-                Toast.makeText(context, "sucess", Toast.LENGTH_SHORT).show();
             } else {
                 Log.e("LoadImageFromDevice", "recyclerView null");
             }
