@@ -7,6 +7,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.Toast;
@@ -19,7 +20,8 @@ public class ImageDetailActivity extends AppCompatActivity {
     private boolean isFavorited = false; // Trạng thái ban đầu
     private DatabaseHandler databaseHandler;
     private ImageView imageView;
-    private ImageButton btnFavorite;
+    private ImageButton btnFavorite, btnEdit, btnShare;
+    private Uri imageUri;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,7 +38,6 @@ public class ImageDetailActivity extends AppCompatActivity {
         imageView = findViewById(R.id.imageViewDetail);
         btnFavorite = findViewById(R.id.btnFavorite);
 
-
         // Khởi tạo đối tượng DatabaseHandler
         databaseHandler = new DatabaseHandler(this);
 
@@ -45,8 +46,9 @@ public class ImageDetailActivity extends AppCompatActivity {
         String imagePath = intent.getStringExtra("imagePath");
 
         if (imagePath != null) {
-            // Hiển th hình ảnh chi tiết ở đây
-            imageView.setImageURI(Uri.parse(imagePath));
+            imageUri = Uri.parse(imagePath);
+            // Hiển thị hình ảnh chi tiết ở đây
+            imageView.setImageURI(imageUri);
 
             // Lấy trạng thái "favor" từ database
             isFavorited = databaseHandler.getPhotoFavorStatus(imagePath);
@@ -59,6 +61,28 @@ public class ImageDetailActivity extends AppCompatActivity {
                 updateFavorIcon(btnFavorite, isFavorited);
             });
         }
+
+        btnEdit = findViewById(R.id.btnEdit);
+        btnShare = findViewById(R.id.btnShare);
+
+        btnEdit.setOnClickListener(v -> {
+            Intent editIntent = new Intent(ImageDetailActivity.this, ImageEditActivity.class);
+            editIntent.putExtra("imageUri", imageUri.toString()); // Gửi đường dẫn ảnh Uri qua Intent
+            startActivity(editIntent);
+        });
+
+        btnShare.setOnClickListener(v -> {
+            // Xử lý sự kiện khi nhấn vào share
+            // Tạo Intent chia sẻ
+            Intent shareIntent = new Intent();
+            shareIntent.setAction(Intent.ACTION_SEND);
+            shareIntent.putExtra(Intent.EXTRA_STREAM, imageUri);
+            shareIntent.setType("image/*");
+            shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION); // Cho phép quyền đọc URI
+
+            // Hiển thị danh sách các ứng dụng có thể chia sẻ
+            startActivity(Intent.createChooser(shareIntent, "Chia sẻ hình ảnh qua:"));
+        });
     }
 
     // Hàm cập nhật giao diện icon
@@ -69,8 +93,6 @@ public class ImageDetailActivity extends AppCompatActivity {
             btnFavorite.setImageResource(R.drawable.ic_favorite_thick); // Không yêu thích
         }
     }
-
-
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
