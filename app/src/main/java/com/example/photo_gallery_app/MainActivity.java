@@ -33,6 +33,8 @@ public class MainActivity extends AppCompatActivity implements MainCallbacks{
 
     // Định nghĩa các đối tượng Fragment tĩnh
     private static final HomeFragment homeFragment = new HomeFragment();
+    private static final AlbumFragment albumFragment = new AlbumFragment();
+    private static final FavoriteFragment favorFragment = new FavoriteFragment();
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 //        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
@@ -67,10 +69,10 @@ public class MainActivity extends AppCompatActivity implements MainCallbacks{
             }
             else if(itemId == R.id.album)
             {
-                replaceFragment(new AlbumFragment(), "Album");
+                replaceFragment(albumFragment, "Album");
             }
             else if(itemId == R.id.favorite){
-                replaceFragment(new FavoriteFragment(), "Favorite");
+                replaceFragment(favorFragment, "Favorite");
             }
             else if(itemId == R.id.more){
                 replaceFragment(new MoreFragment(), "More");
@@ -121,8 +123,19 @@ public class MainActivity extends AppCompatActivity implements MainCallbacks{
     }
 
     public void Load(){
+        Toast.makeText(this, "choose", Toast.LENGTH_SHORT).show();
         loadImageFromDevice.loadImagesFromDevice((this));
         loadImageFromDevice.loadImagesFromDatabase(this, ds, imageAdapter, homeFragment.recyclerView);
+    }
+
+    public void LoadImgInAlbum(){
+        //loadImageFromDevice.loadImagesFromDevice((this));
+        loadImageFromDevice.loadImagesFromDatabase(this, ds, imageAdapter, albumFragment.recyclerView);
+    }
+
+    public void LoadImgInFavorite(){
+        //loadImageFromDevice.loadImagesFromDevice((this));
+        loadImageFromDevice.loadImagesFavoriteFromDatabase(this, ds, imageAdapter, favorFragment.recyclerView);
     }
 
     private void replaceFragment(Fragment fragment, String title){
