@@ -92,6 +92,13 @@ public class MainActivity extends AppCompatActivity implements MainCallbacks{
         });
     }
 
+    // Lấy item ở trong menu gắn vào toolbar
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.toolbar_menu, menu);
+        return true;
+    }
+
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
@@ -116,12 +123,6 @@ public class MainActivity extends AppCompatActivity implements MainCallbacks{
     public void Load(){
         loadImageFromDevice.loadImagesFromDevice((this));
         loadImageFromDevice.loadImagesFromDatabase(this, ds, imageAdapter, homeFragment.recyclerView);
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.toolbar_menu, menu); // Inflate menu từ toolbar_menu.xml
-        return true;
     }
 
     private void replaceFragment(Fragment fragment, String title){

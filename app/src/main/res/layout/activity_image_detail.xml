@@ -1,7 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- Thanh công cụ phía trên -->
+    <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/appBarLayoutDetail"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/white">
+
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbarDetail"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="@color/white"
+            app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
+            app:titleTextAppearance="@style/CustomToolbarTitle"/>
+    </com.google.android.material.appbar.AppBarLayout>
 
     <!-- ImageView để hiển thị ảnh chi tiết -->
     <ImageView
@@ -9,4 +27,54 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:scaleType="fitCenter" />
+
+    <LinearLayout
+        android:id="@+id/bottomTool"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/white"
+        android:orientation="horizontal"
+        android:padding="8dp"
+        android:gravity="center"
+        android:layout_alignParentBottom="true">
+
+        <ImageButton
+            android:id="@+id/btnEdit"
+            android:contentDescription="Edit"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_weight="1"
+            app:srcCompat="@drawable/ic_edit"
+            android:background="@null"/>
+
+        <ImageButton
+            android:id="@+id/btnFavorite"
+            android:contentDescription="Favorite"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_weight="1"
+            app:srcCompat="@drawable/ic_favorite_thick"
+            android:background="@null"/>
+
+        <ImageButton
+            android:id="@+id/btnDelete"
+            android:contentDescription="Delete"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_weight="1"
+            app:srcCompat="@drawable/ic_delete"
+            android:background="@null"/>
+
+        <ImageButton
+            android:id="@+id/btnShare"
+            android:contentDescription="Share"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_weight="1"
+            app:srcCompat="@drawable/ic_share"
+            android:background="@null"/>
+
+    </LinearLayout>
+
+
 </RelativeLayout>

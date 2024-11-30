@@ -31,7 +31,7 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHol
     public ImageViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         LayoutInflater inflater = LayoutInflater.from(context);
         View view = inflater.inflate(R.layout.image_show, parent, false);
-        Toast.makeText(context, "Đã thêm ảnh thủ công", Toast.LENGTH_SHORT).show();
+//        Toast.makeText(context, "Đã thêm ảnh thủ công", Toast.LENGTH_SHORT).show();
         return new ImageViewHolder(view);
     }
 
@@ -39,7 +39,7 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHol
     public void onBindViewHolder(@NonNull ImageViewHolder holder, int position) {
 
         String imagePath = ds.get(position);
-        Toast.makeText(context, "Đã thêm " + imagePath, Toast.LENGTH_SHORT).show();
+//        Toast.makeText(context, "Đã thêm " + imagePath, Toast.LENGTH_SHORT).show();
 
         holder.imvThem.setImageURI(Uri.parse(imagePath));  // Nếu là URI
         //holder.imvThem.setImageBitmap(BitmapFactory.decodeFile(imagePath)); // Nếu là đường dẫn file
