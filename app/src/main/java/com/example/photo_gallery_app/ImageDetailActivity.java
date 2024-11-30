@@ -7,10 +7,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
-<<<<<<< Updated upstream
-=======
 import android.widget.ImageButton;
->>>>>>> Stashed changes
 import android.widget.ImageView;
 import android.widget.Toast;
 
@@ -22,10 +19,7 @@ public class ImageDetailActivity extends AppCompatActivity {
     private boolean isFavorited = false; // Trạng thái ban đầu
     private DatabaseHandler databaseHandler;
     private ImageView imageView;
-<<<<<<< Updated upstream
-=======
     private ImageButton btnFavorite;
->>>>>>> Stashed changes
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,8 +47,6 @@ public class ImageDetailActivity extends AppCompatActivity {
         if (imagePath != null) {
             // Hiển th hình ảnh chi tiết ở đây
             imageView.setImageURI(Uri.parse(imagePath));
-<<<<<<< Updated upstream
-=======
 
             // Lấy trạng thái "favor" từ database
             isFavorited = databaseHandler.getPhotoFavorStatus(imagePath);
@@ -66,7 +58,6 @@ public class ImageDetailActivity extends AppCompatActivity {
                 databaseHandler.updatePhotoFavorStatus(imagePath, isFavorited);
                 updateFavorIcon(btnFavorite, isFavorited);
             });
->>>>>>> Stashed changes
         }
     }
 
