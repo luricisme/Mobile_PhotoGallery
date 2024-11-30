@@ -46,5 +46,8 @@ dependencies {
     androidTestImplementation(libs.espresso.core)
 
     implementation("com.google.android.material:material:1.7.0")
+
+    // Thêm thư viện uCrop
+    implementation("com.github.yalantis:ucrop:2.2.10") // Phiên bản mới nhất
 }
 

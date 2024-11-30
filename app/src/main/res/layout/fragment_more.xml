@@ -19,7 +19,7 @@
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="20dp"
         android:layout_marginVertical="10dp"
-        android:drawableLeft="@drawable/more_change_password"
+        android:drawableLeft="@drawable/ic_change_password"
         android:drawablePadding="8dp"
         android:text="Change Password"
         android:textSize="20dp" />
@@ -30,7 +30,7 @@
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="20dp"
         android:layout_marginVertical="10dp"
-        android:drawableLeft="@drawable/more_language"
+        android:drawableLeft="@drawable/ic_language"
         android:drawablePadding="8dp"
         android:text="Language"
         android:textSize="20dp" />
@@ -41,7 +41,7 @@
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="20dp"
         android:layout_marginVertical="10dp"
-        android:drawableLeft="@drawable/more_about"
+        android:drawableLeft="@drawable/ic_about"
         android:drawablePadding="8dp"
         android:text="About"
         android:textSize="20dp" />

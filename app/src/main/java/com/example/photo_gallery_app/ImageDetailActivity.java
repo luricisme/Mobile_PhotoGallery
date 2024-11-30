@@ -5,12 +5,16 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
 public class ImageDetailActivity extends AppCompatActivity {
     private ImageView imageView;
+    private ImageButton btnEdit, btnShare;
+    private Uri imageUri;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,9 +35,38 @@ public class ImageDetailActivity extends AppCompatActivity {
         String imagePath = intent.getStringExtra("imagePath");
 
         if (imagePath != null) {
+            imageUri = Uri.parse(imagePath);
             // Hiển th hình ảnh chi tiết ở đây
-            imageView.setImageURI(Uri.parse(imagePath));
+            imageView.setImageURI(imageUri);
         }
+
+        btnEdit = (ImageButton) findViewById(R.id.btnEdit);
+        btnShare = (ImageButton) findViewById(R.id.btnShare);
+
+        btnEdit.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent editIntent = new Intent(ImageDetailActivity.this, ImageEditActivity.class);
+                editIntent.putExtra("imageUri", imageUri.toString()); // Gửi đường dẫn ảnh Uri qua Intent
+                startActivity(editIntent);
+            }
+        });
+
+        btnShare.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Xử lý sự kiện khi nhấn vào share
+                // Tạo Intent chia sẻ
+                Intent shareIntent = new Intent();
+                shareIntent.setAction(Intent.ACTION_SEND);
+                shareIntent.putExtra(Intent.EXTRA_STREAM, imageUri);
+                shareIntent.setType("image/*");
+                shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION); // Cho phép quyền đọc URI
+
+                // Hiển thị danh sách các ứng dụng có thể chia sẻ
+                startActivity(Intent.createChooser(shareIntent, "Chia sẻ hình ảnh qua:"));
+            }
+        });
     }
 
     @Override

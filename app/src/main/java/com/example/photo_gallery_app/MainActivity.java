@@ -139,7 +139,7 @@ public class MainActivity extends AppCompatActivity implements MainCallbacks{
     public void onMsgFromFragToMain(String sender, String msg) {
         if (sender.equals("MORE-FRAG")) {
             try {
-                replaceFragment(new AboutFragment(), "About");
+                if(msg.equals("ABOUT")){ replaceFragment(new AboutFragment(), "About"); }
             }
             catch (Exception e) { Log.e("ERROR", "onStrFromFragToMain " + e.getMessage()); }
         }
