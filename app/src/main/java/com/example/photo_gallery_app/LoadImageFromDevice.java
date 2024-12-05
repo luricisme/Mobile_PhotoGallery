@@ -25,9 +25,8 @@ public class LoadImageFromDevice {
 
     // Lấy ảnh từ MediaStore và lưu vào database nếu chưa có
     public void loadImagesFromDevice(Context context) {
+        //SdatabaseHandler.deleteAllPhotos();
         try {
-            databaseHandler.deleteAllPhotos();
-            //databaseHandler.clearDeletedPhotos();
             String[] projection = {
                     MediaStore.Images.ImageColumns._ID,
                     MediaStore.Images.ImageColumns.DISPLAY_NAME,
@@ -52,20 +51,19 @@ public class LoadImageFromDevice {
                 int pathColumn = cursor.getColumnIndexOrThrow(MediaStore.Images.ImageColumns.DATA);
                 int sizeColumn = cursor.getColumnIndexOrThrow(MediaStore.Images.ImageColumns.SIZE);
 
-
                 cursor.moveToFirst();
                 while (!cursor.isAfterLast()) {
                     long id = cursor.getLong(idColumn);
-
                     Uri contentUri = ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id);
-
                     String name = cursor.getString(nameColumn);
                     String date = cursor.getString(dateColumn); // Thời gian tạo
                     String filePath = contentUri.toString();
                     long size = cursor.getLong(sizeColumn);
 
-                    // Kiểm tra và thêm vào database nếu chưa tồn tại
-                    databaseHandler.addPhoto(name, date, null, 0, 0, filePath, size, null);
+                    // Kiểm tra xem ảnh đã tồn tại trong cơ sở dữ liệu chưa
+                    if (!databaseHandler.isPhotoExists(filePath)) {
+                        databaseHandler.addPhoto(name, date, null, 0, 0, filePath, size);
+                    }
 
                     cursor.moveToNext();
                 }
@@ -79,6 +77,7 @@ public class LoadImageFromDevice {
         }
     }
 
+
     // Lấy ảnh từ database và hiển thị lên RecyclerView
     public void loadImagesFromDatabase(Context context, List<String> ds, ImageAdapter imageAdapter, RecyclerView recyclerView) {
         try {
@@ -88,7 +87,8 @@ public class LoadImageFromDevice {
 
             if (recyclerView != null) {
                 recyclerView.setLayoutManager(new LinearLayoutManager(context));
-                imageAdapter = new ImageAdapter(context, ds);
+                //imageAdapter = new ImageAdapter(context, ds);
+                imageAdapter.setDs(context, ds);
                 recyclerView.setAdapter(imageAdapter);
             } else {
                 Log.e("LoadImageFromDevice", "recyclerView null");
@@ -108,7 +108,29 @@ public class LoadImageFromDevice {
 
             if (recyclerView != null) {
                 recyclerView.setLayoutManager(new LinearLayoutManager(context));
-                imageAdapter = new ImageAdapter(context, ds);
+                //imageAdapter = new ImageAdapter(context, ds);
+                imageAdapter.setDs(context, ds);
+                recyclerView.setAdapter(imageAdapter);
+            } else {
+                Log.e("LoadImageFromDevice", "recyclerView null");
+            }
+        } catch (Exception e) {
+            Log.e("LoadImageFromDevice", "Lỗi khi loadImagesFromDatabase(): " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    // Lấy ảnh từ database và hiển thị lên RecyclerView
+    public void loadImagesInAlbumFromDatabase(Context context, List<String> ds, ImageAdapter imageAdapter, RecyclerView recyclerView, int id) {
+        try {
+            ds.clear();
+            List<String> photoPaths = databaseHandler.getPhotosByAlbumId(id);
+            ds.addAll(photoPaths);
+
+            if (recyclerView != null) {
+                recyclerView.setLayoutManager(new LinearLayoutManager(context));
+                //imageAdapter = new ImageAdapter(context, ds);
+                imageAdapter.setDs(context, ds);
                 recyclerView.setAdapter(imageAdapter);
             } else {
                 Log.e("LoadImageFromDevice", "recyclerView null");
