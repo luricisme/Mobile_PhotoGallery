@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.Menu;
+import android.view.MenuItem;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
@@ -28,7 +29,7 @@ public class MainActivity extends AppCompatActivity implements MainCallbacks{
     private Uri imageUri;
     public LoadImageFromDevice loadImageFromDevice = new LoadImageFromDevice(this);
     //private RecyclerView recyclerView;
-    private ImageAdapter imageAdapter;
+    public ImageAdapter imageAdapter;
     private List<String> ds = new ArrayList<>();
 
     // Định nghĩa các đối tượng Fragment tĩnh
@@ -51,6 +52,8 @@ public class MainActivity extends AppCompatActivity implements MainCallbacks{
         // Mặc định ban đầu là HomeFragment
         replaceFragment(homeFragment, "Home");
         binding.bottomNavigationView.setBackground(null);
+
+        imageAdapter = new ImageAdapter(MainActivity.this, ds);
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)
                 != PackageManager.PERMISSION_GRANTED) {
@@ -94,6 +97,22 @@ public class MainActivity extends AppCompatActivity implements MainCallbacks{
         });
     }
 
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == R.id.select) {
+            // Kiểm tra xem fragment hiện tại có phải là AlbumFragment không
+            if (getSupportFragmentManager().findFragmentById(R.id.frame_layout) instanceof AlbumFragment) {
+                albumFragment.handlerSelect();
+            }
+            return true;
+        } else if (item.getItemId() == R.id.delete) {
+
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
     // Lấy item ở trong menu gắn vào toolbar
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -123,7 +142,7 @@ public class MainActivity extends AppCompatActivity implements MainCallbacks{
     }
 
     public void Load(){
-        Toast.makeText(this, "choose", Toast.LENGTH_SHORT).show();
+        //Toast.makeText(this, "choose", Toast.LENGTH_SHORT).show();
         loadImageFromDevice.loadImagesFromDevice((this));
         loadImageFromDevice.loadImagesFromDatabase(this, ds, imageAdapter, homeFragment.recyclerView);
     }
@@ -131,6 +150,16 @@ public class MainActivity extends AppCompatActivity implements MainCallbacks{
     public void LoadImgInAlbum(){
         //loadImageFromDevice.loadImagesFromDevice((this));
         loadImageFromDevice.loadImagesFromDatabase(this, ds, imageAdapter, albumFragment.recyclerView);
+    }
+
+    public void LoadImgInAlbumID(int id){
+        //loadImageFromDevice.loadImagesFromDevice((this));
+        loadImageFromDevice.loadImagesInAlbumFromDatabase(this, ds, imageAdapter, albumFragment.recyclerView, id);
+    }
+
+    public void LoadImgInAlbumAsFavor(){
+        //loadImageFromDevice.loadImagesFromDevice((this));
+        loadImageFromDevice.loadImagesFavoriteFromDatabase(this, ds, imageAdapter, albumFragment.recyclerView);
     }
 
     public void LoadImgInFavorite(){

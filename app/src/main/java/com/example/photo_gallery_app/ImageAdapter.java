@@ -8,6 +8,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.Toast;
 
@@ -18,12 +19,20 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHolder> {
-    private final Context context;
-    private final List<String> ds;
+    private Context context;
+    private List<String> ds;
+    private boolean isSelectionMode = false;
+    private ImageAdapter.OnItemSelectedListener onItemSelectedListener;
 
     public ImageAdapter(Context context, List<String> ds) {
         this.context = context;
         this.ds = ds;
+        this.isSelectionMode = false;
+    }
+
+    // Thiết lập listener cho AlbumFragment
+    public void setOnItemSelectedListener(ImageAdapter.OnItemSelectedListener listener) {
+        this.onItemSelectedListener = listener;
     }
 
     @NonNull
@@ -44,14 +53,44 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHol
         holder.imvThem.setImageURI(Uri.parse(imagePath));  // Nếu là URI
         //holder.imvThem.setImageBitmap(BitmapFactory.decodeFile(imagePath)); // Nếu là đường dẫn file
 
+        if (isSelectionMode) {
+            holder.checkbox.setVisibility(View.VISIBLE);
+        } else {
+            holder.checkbox.setVisibility(View.GONE);
+            holder.checkbox.setChecked(false);
+        }
+
         holder.imvThem.setOnClickListener(v -> {
-            // Ở đây mở một activity mới để hiển thị ảnh chi tiết
-            Intent intent = new Intent(context, ImageDetailActivity.class);
-            intent.putExtra("imagePath", imagePath);
-            context.startActivity(intent);
+            if (!isSelectionMode) {
+                // Ở đây mở một activity mới để hiển thị ảnh chi tiết
+                Intent intent = new Intent(context, ImageDetailActivity.class);
+                intent.putExtra("imagePath", imagePath);
+                context.startActivity(intent);
+            }
+        });
+
+        // Lắng nghe sự kiện checkbox
+        holder.checkbox.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (onItemSelectedListener != null) {
+                DatabaseHandler db = new DatabaseHandler(context);
+                int imageId = db.getImageIdFromPath(imagePath);
+                onItemSelectedListener.onItemSelected(String.valueOf(imageId), isChecked);
+            }
         });
 
     }
+
+    public void enableSelection(boolean isEnabled) {
+        isSelectionMode = isEnabled;
+        notifyDataSetChanged();
+    }
+
+    public void setDs(Context _context, List<String> _ds){
+        context = _context;
+        ds = _ds;
+        isSelectionMode = false;
+    }
+
 
     @Override
     public int getItemCount() {
@@ -60,10 +99,16 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHol
 
     public static class ImageViewHolder extends RecyclerView.ViewHolder {
         ImageView imvThem;
+        CheckBox checkbox;
 
         public ImageViewHolder(@NonNull View itemView) {
             super(itemView);
+            checkbox = itemView.findViewById(R.id.checkBox);
             imvThem = itemView.findViewById(R.id.imv_them);
         }
+    }
+
+    public interface OnItemSelectedListener {
+        void onItemSelected(String string, boolean isSelected);
     }
 }

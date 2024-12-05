@@ -2,16 +2,16 @@ package com.example.photo_gallery_app;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -24,16 +24,23 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class AlbumFragment extends Fragment {
 
-    private ImageButton btnAddAlbum, btnBack;
+    private ImageButton btnAddAlbum, btnBack, btnLayout;
     public RecyclerView recyclerView;
     private AlbumAdapter albumAdapter;
     private ArrayList<Album> albumList;
     private DatabaseHandler databaseHandler;
+    // Trigger image loading for the selected album
+    MainActivity mainActivity;
+
+    private List<String> selectedItems = new ArrayList<>();
 
     private boolean isViewingPhotos = false;
+    private boolean isSelect = false;
+    private int currentLayout = 1; // Default to 1-column layout
 
     @SuppressLint("MissingInflatedId")
     @Override
@@ -43,179 +50,311 @@ public class AlbumFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_album, container, false);
 
         btnAddAlbum = view.findViewById(R.id.btn_add_album);
+        btnLayout = view.findViewById(R.id.btn_change_layout);
         recyclerView = view.findViewById(R.id.recyclerView);
 
         btnBack = view.findViewById(R.id.btn_back_album);
-        btnBack.setVisibility(View.GONE); // Ẩn nút quay lại ban đầu
+        btnBack.setVisibility(View.GONE); // Hide back button initially
+        btnLayout.setVisibility(View.GONE);
 
-        // Khởi tạo đối tượng DatabaseHandler
+        // Initialize DatabaseHandler
         databaseHandler = new DatabaseHandler(requireContext());
+        mainActivity = (MainActivity) getActivity();
 
-        // Khởi tạo danh sách album và Adapter
+        // Initialize album list and adapter
         albumList = new ArrayList<>();
-        albumList.add(new Album(-1, "Tất cả ảnh", databaseHandler.getTotalPhoto()));
-        albumList.addAll(databaseHandler.getAllAlbums()); // Lấy dữ liệu từ SQLite
-        // Khởi tạo AlbumAdapter và truyền listener để xử lý click
+        albumList.add(new Album(-1, "All Photos", databaseHandler.getTotalPhoto())); // "All Photos" album
+        albumList.add(new Album(-2, "Favorites", databaseHandler.getTotalFavoritedPhotos()));
+        albumList.addAll(databaseHandler.getAllAlbums()); // Fetch all albums from SQLite
+
+        // Setup AlbumAdapter with listener for item clicks
         albumAdapter = new AlbumAdapter(getContext(), albumList, new AlbumAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(Album album) {
-                // Gọi phương thức trong Fragment để xử lý sự kiện click
-                onAlbumClicked(album.getName(), album.getPhotoCount());
+                onAlbumClicked(album);
+                switchLayout(false);
             }
         });
 
-        // Cài đặt GridLayoutManager với 2 cột
-        GridLayoutManager gridLayoutManager = new GridLayoutManager(requireContext(), 2);
-        recyclerView.setLayoutManager(gridLayoutManager);
+        // Set layout manager to GridLayout with 2 columns
+        recyclerView.setLayoutManager(new GridLayoutManager(requireContext(), 2));
         recyclerView.setAdapter(albumAdapter);
 
-        // Thêm album khi bấm nút
+        // Add album button click handler
         btnAddAlbum.setOnClickListener(v -> showAddAlbumDialog());
 
-        // Xử lý nút quay lại
+        // Back button click handler
         btnBack.setOnClickListener(v -> {
             if (isViewingPhotos) {
-                showAlbumList(); // Quay lại danh sách album
+                showAlbumList(); // Return to album list if viewing photos
             }
         });
+
+        // Thiết lập listener để cập nhật selectedItems khi người dùng chọn album
+        albumAdapter.setOnItemSelectedListener((album, isSelected) -> {
+            if (isSelected) {
+                selectedItems.add(album.getName());  // Thêm album vào danh sách chọn
+            } else {
+                selectedItems.remove(album.getName());  // Loại bỏ album khỏi danh sách chọn
+            }
+            Toast.makeText(mainActivity, String.valueOf(selectedItems.size()), Toast.LENGTH_SHORT).show();
+        });
+
+        // Thiết lập listener để cập nhật selectedItems khi người dùng chọn album
+        mainActivity.imageAdapter.setOnItemSelectedListener((string, isSelected) -> {
+            if (isSelected) {
+                selectedItems.add(string);  // Thêm album vào danh sách chọn
+            } else {
+                selectedItems.remove(string);  // Loại bỏ album khỏi danh sách chọn
+            }
+            Toast.makeText(mainActivity, string, Toast.LENGTH_SHORT).show();
+            Toast.makeText(mainActivity, String.valueOf(selectedItems.size()), Toast.LENGTH_SHORT).show();
+        });
+
+        // Layout switch button click handler
+        btnLayout.setOnClickListener(v -> switchLayout(true));
 
         return view;
     }
 
+    // Xử lý khi nhấn vào Select
+    public void handlerSelect() {
+        isSelect = !isSelect;
+        enableSelectionMode(isSelect);
+    }
+
+    // Enable selection mode
+    private void enableSelectionMode(boolean isEnabled) {
+        if (isEnabled) {
+            // Show checkboxes in RecyclerView
+            if (isViewingPhotos) {
+                mainActivity.imageAdapter.enableSelection(true);
+            } else {
+                albumAdapter.enableSelection(true);
+            }
+        } else {
+            // Hide checkboxes and clear selected items
+            if (isViewingPhotos) {
+                mainActivity.imageAdapter.enableSelection(false);
+            } else {
+                albumAdapter.enableSelection(false);
+            }
+            selectedItems.clear();
+        }
+    }
+
+
     private void showAlbumList() {
         isViewingPhotos = false;
 
-        // Hiển thị danh sách album
+        // Show album list
         btnAddAlbum.setVisibility(View.VISIBLE);
+        btnLayout.setVisibility(View.GONE);
         btnBack.setVisibility(View.GONE);
 
         recyclerView.setLayoutManager(new GridLayoutManager(requireContext(), 2));
         recyclerView.setAdapter(albumAdapter);
     }
 
-    // Phương thức này sẽ nhận tên album và số ảnh khi item được click
-    private void onAlbumClicked(String albumName, int photoCount) {
+    private void onAlbumClicked(Album album) {
+        if (album.getId() == -1) {
+            showAllPhotos(); // Show all photos when "All Photos" album is clicked
+        } else if (album.getId() == -2) {
+            showFavorPhotos(); // Show all photos when "Favorite" album is clicked
+        } else {
+            showPhotosInAlbum(album); // Show photos in selected album
+        }
+    }
 
-
+    private void showAllPhotos() {
         isViewingPhotos = true;
-
         btnAddAlbum.setVisibility(View.GONE);
         btnBack.setVisibility(View.VISIBLE);
+        btnLayout.setVisibility(View.VISIBLE);
 
+        // Handle viewing photos in album (e.g., load and display images in RecyclerView)
 
-        // Xử lý hành động khi album được click
-        Toast.makeText(getContext(), "Album: " + albumName + " - " + photoCount + " photos", Toast.LENGTH_SHORT).show();
-        // Bạn có thể thay đổi hành động ở đây, ví dụ như mở một màn hình chi tiết của album
-
-        // Thay đổi LayoutManager để hiển thị danh sách ảnh
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
 
-        // Gọi hàm trong MainActivity
-        MainActivity mainActivity = (MainActivity) getActivity();
         if (mainActivity != null) {
             mainActivity.LoadImgInAlbum();
         }
     }
 
+    private void showFavorPhotos() {
+        isViewingPhotos = true;
+        btnAddAlbum.setVisibility(View.GONE);
+        btnBack.setVisibility(View.VISIBLE);
+        btnLayout.setVisibility(View.VISIBLE);
+
+        // Handle viewing photos in album (e.g., load and display images in RecyclerView)
+
+        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+
+        if (mainActivity != null) {
+            mainActivity.LoadImgInAlbumAsFavor();
+        }
+    }
+
+    private void showPhotosInAlbum(Album album) {
+        isViewingPhotos = true;
+
+        // Cập nhật giao diện
+        btnAddAlbum.setVisibility(View.GONE);
+        btnBack.setVisibility(View.VISIBLE);
+        btnLayout.setVisibility(View.VISIBLE);
+
+        // Thiết lập RecyclerView
+        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+
+        if (mainActivity != null) {
+            mainActivity.LoadImgInAlbumID(album.getId());
+        }
+    }
+
     private void showAddAlbumDialog() {
-        // Inflate layout tùy chỉnh
+        // Inflate custom dialog layout
         LayoutInflater inflater = LayoutInflater.from(requireContext());
         View dialogView = inflater.inflate(R.layout.dialog_add_album, null);
 
-        // Ánh xạ các thành phần giao diện
+        // Initialize dialog components
         EditText etAlbumName = dialogView.findViewById(R.id.edt_album_name);
+        RecyclerView recyclerViewPhotos = dialogView.findViewById(R.id.recyclerViewPhotos);
         Button btnCancel = dialogView.findViewById(R.id.btn_cancel);
         Button btnAdd = dialogView.findViewById(R.id.btn_add);
 
-        // Tạo AlertDialog với layout tùy chỉnh
+        // Fetch all photo paths for selection
+        List<String> photoPaths = databaseHandler.getAllPhotoPaths();
+        List<String> selectedPhotos = new ArrayList<>();
+
+        // Setup PhotoAddAdapter for selecting photos
+        PhotoAddAdapter photoAddAdapter = new PhotoAddAdapter(requireContext(), photoPaths, selectedPhotos, (imagePath) -> {
+            if (selectedPhotos.contains(imagePath)) {
+                selectedPhotos.remove(imagePath);
+            } else {
+                selectedPhotos.add(imagePath);
+            }
+        });
+
+        recyclerViewPhotos.setLayoutManager(new GridLayoutManager(requireContext(), 3)); // Grid 3 columns
+        recyclerViewPhotos.setAdapter(photoAddAdapter);
+
+        // Create and show AlertDialog
         AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
         builder.setView(dialogView);
         AlertDialog dialog = builder.create();
 
-        // Hiển thị hộp thoại và hiện bàn phím
-        dialog.setOnShowListener(dialogInterface -> {
-            etAlbumName.requestFocus();
-            InputMethodManager imm = (InputMethodManager) requireContext().getSystemService(Context.INPUT_METHOD_SERVICE);
-            if (imm != null) {
-                imm.showSoftInput(etAlbumName, InputMethodManager.SHOW_IMPLICIT);
-            }
-        });
+        // Cancel button handler
+        btnCancel.setOnClickListener(v -> dialog.dismiss());
 
-        // Gán sự kiện cho nút Cancel
-        btnCancel.setOnClickListener(v -> {
-            dialog.dismiss();
-            InputMethodManager imm = (InputMethodManager) requireContext().getSystemService(Context.INPUT_METHOD_SERVICE);
-            if (imm != null) {
-                imm.hideSoftInputFromWindow(etAlbumName.getWindowToken(), 0);
-            }
-        });
-
-        // Gán sự kiện cho nút Add
+        // Add button handler
         btnAdd.setOnClickListener(v -> {
             String albumName = etAlbumName.getText().toString().trim();
-            if (!albumName.isEmpty()) {
-                addAlbum(albumName);
-                dialog.dismiss();
-            } else {
+            if (albumName.isEmpty()) {
                 etAlbumName.setError("Please enter album name");
+                return;
             }
+
+            // Check if album name is valid (not duplicated)
+            if (!isAlbumNameValid(albumName)) {
+                etAlbumName.setError("Album name already exists");
+                return;
+            }
+
+            if (selectedPhotos.size() < 3) {
+                Toast.makeText(requireContext(), "Please select at least 3 photos", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            // Save album and selected photos
+            addAlbumWithPhotos(albumName, selectedPhotos);
+            dialog.dismiss();
         });
 
-        // Hiển thị hộp thoại
+        // Show the dialog
         dialog.show();
     }
 
-    private void addAlbum(String albumName) {
-        // Kiểm tra tên album hợp lệ
+    private void addAlbumWithPhotos(String albumName, List<String> selectedPhotos) {
         if (isAlbumNameValid(albumName)) {
-            // Thêm album vào cơ sở dữ liệu
+            // Add album to database
             databaseHandler.addAlbum(albumName);
 
-            // Cập nhật lại danh sách album
+            // Get the album ID
+            int albumId = getAlbumIdByName(albumName);
+
+            // Add selected photos to album
+            for (String photoPath : selectedPhotos) {
+                addPhotoToAlbum(photoPath, albumId);
+            }
+
+            // Refresh album list and update UI
             albumList.clear();
-            albumList.add(new Album(-1, "Tất cả ảnh", databaseHandler.getTotalPhoto())); // Giữ album "Tất cả ảnh" đầu danh sách
+            albumList.add(new Album(-1, "All Photos", databaseHandler.getTotalPhoto())); // Keep "All Photos" album at the top
+            albumList.add(new Album(-2, "Favorites", databaseHandler.getTotalFavoritedPhotos()));
             albumList.addAll(databaseHandler.getAllAlbums());
-            albumAdapter.notifyDataSetChanged(); // Cập nhật giao diện
+            albumAdapter.notifyDataSetChanged();
+
+            // Notify user
+            Toast.makeText(requireContext(), "Album and photos saved successfully!", Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(requireContext(), "Invalid album name!", Toast.LENGTH_SHORT).show();
         }
+    }
+
+    private int getAlbumIdByName(String albumName) {
+        SQLiteDatabase db = databaseHandler.getReadableDatabase();
+        Cursor cursor = db.query("album", new String[]{"id_album"}, "name = ?", new String[]{albumName}, null, null, null);
+
+        if (cursor != null && cursor.moveToFirst()) {
+            @SuppressLint("Range") int albumId = cursor.getInt(cursor.getColumnIndex("id_album"));
+            cursor.close();
+            return albumId;
+        }
+
+        cursor.close();
+        return -1; // Return -1 if album not found
+    }
+
+    private void addPhotoToAlbum(String photoPath, int albumId) {
+        SQLiteDatabase db = databaseHandler.getReadableDatabase();
+        Cursor cursor = db.query("photos", new String[]{"id"}, "file_path = ?", new String[]{photoPath}, null, null, null);
+
+        if (cursor != null && cursor.moveToFirst()) {
+            @SuppressLint("Range") int photoId = cursor.getInt(cursor.getColumnIndex("id"));
+            databaseHandler.addPhotoToAlbum(photoId, albumId); // Add photo to album
+        }
+
+        cursor.close();
     }
 
     private boolean isAlbumNameValid(String albumName) {
-        // Kiểm tra rỗng
-        if (albumName.isEmpty()) {
-            return false;
-        }
-
-        // Kiểm tra trùng lặp trong danh sách album
-        for (Album album : albumList) {
-            if (album.getName().equalsIgnoreCase(albumName)) {
-                return false;
-            }
-        }
-
-        return true;
+        SQLiteDatabase db = databaseHandler.getReadableDatabase();
+        Cursor cursor = db.query("album", new String[]{"name"}, "name = ?", new String[]{albumName}, null, null, null);
+        boolean isValid = cursor.getCount() == 0;
+        cursor.close();
+        return isValid;
     }
 
-    private void onAlbumClicked(Album album) {
-        if (album.getId() == -1) {
-            // Xử lý khi chọn album "Tất cả ảnh"
-            showAllPhotos();
-        } else {
-            // Xử lý khi chọn album cụ thể
-            showPhotosInAlbum(album);
+    private void switchLayout(boolean sta) {
+        if (sta) {
+            currentLayout++; // Tăng kiểu layout
+            if (currentLayout > 3) currentLayout = 1; // Quay lại 1 cột nếu vượt quá 3 cột
         }
-    }
 
-    private void showAllPhotos() {
-
-        // Điều hướng hoặc hiển thị tất cả ảnh
-        AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
-        builder.setMessage("Hiển thị tất cả ảnh trong album.");
-        builder.setPositiveButton("OK", null);
-        builder.show();
-    }
-
-    private void showPhotosInAlbum(Album album) {
-
-
+        switch (currentLayout) {
+            case 1:
+                recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+                btnLayout.setImageResource(R.drawable.ic_layout_1); // Icon cho layout 1
+                break;
+            case 2:
+                recyclerView.setLayoutManager(new GridLayoutManager(getContext(), 2));
+                btnLayout.setImageResource(R.drawable.ic_layout_2); // Icon cho layout 2
+                break;
+            case 3:
+                recyclerView.setLayoutManager(new GridLayoutManager(getContext(), 3));
+                btnLayout.setImageResource(R.drawable.ic_layout_3); // Icon cho layout 3
+                break;
+        }
     }
 }
