@@ -28,6 +28,7 @@
         </activity>
         <activity android:name=".ImageDetailActivity" />
         <activity android:name=".ImageEditActivity" />
+        <activity android:name=".ImageEditFilterActivity" />
 
         <!-- Crop ảnh -->
         <activity

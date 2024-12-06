@@ -14,12 +14,14 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.yalantis.ucrop.UCrop;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 
 public class ImageEditActivity extends AppCompatActivity {
@@ -36,7 +38,6 @@ public class ImageEditActivity extends AppCompatActivity {
 
         imageViewEdit = findViewById(R.id.imageViewEdit);
 
-        // Lấy đường dẫn ảnh từ Intent - Lấy từ MainActivity.java -> LoadIFD.LIFDatabase -> ImageAdap.BindViewHolder
         Intent intent = getIntent();
         String uriString = intent.getStringExtra("imageUri");
 
@@ -44,13 +45,6 @@ public class ImageEditActivity extends AppCompatActivity {
             imageUri = Uri.parse(uriString);
             // Hiển th hình ảnh chi tiết ở đây
             imageViewEdit.setImageURI(imageUri);
-            try {
-                Bitmap bitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), imageUri);
-                imageViewEdit.setImageBitmap(bitmap);
-                editedBitmap = bitmap; // Dùng bitmap này để chỉnh sửa
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
         }
 
         btnBack = (ImageButton) findViewById(R.id.btnBack);
@@ -78,7 +72,11 @@ public class ImageEditActivity extends AppCompatActivity {
 
         btnFilter.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v) { finish();}
+            public void onClick(View v) {
+                Intent editfilterIntent = new Intent(ImageEditActivity.this, ImageEditFilterActivity.class);
+                editfilterIntent.putExtra("imageUri", imageUri.toString()); // Gửi đường dẫn ảnh Uri qua Intent
+                startActivityForResult(editfilterIntent, 1);
+            }
         });
 
         txtSave.setOnClickListener(new View.OnClickListener() {
@@ -89,23 +87,38 @@ public class ImageEditActivity extends AppCompatActivity {
                 values.put(MediaStore.Images.Media.TITLE, "Edited Picture");
                 values.put(MediaStore.Images.Media.DESCRIPTION, "Image after editing");
 
-                // Lấy URI của MediaStore để lưu ảnh vào
-                Uri newimageUri = getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
+                // Tạo URI mới trong MediaStore để lưu ảnh vào
+                Uri newImageUri = getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
 
-                if (newimageUri != null) {
+                if (newImageUri != null) {
                     try {
-                        // Mở OutputStream để ghi ảnh vào MediaStore
-                        OutputStream outputStream = getContentResolver().openOutputStream(newimageUri);
-                        if (outputStream != null) {
-                            editedBitmap.compress(Bitmap.CompressFormat.JPEG, 90, outputStream); // Lưu ảnh vào URI
-                            outputStream.close(); // Đóng OutputStream
-                            Toast.makeText(ImageEditActivity.this, "Ảnh đã được lưu vào thư viện!", Toast.LENGTH_SHORT).show();
+                        // Mở InputStream từ imageUri (ảnh đã chỉnh sửa)
+                        InputStream inputStream = getContentResolver().openInputStream(imageUri);
+                        if (inputStream != null) {
+                            // Mở OutputStream để ghi ảnh vào MediaStore
+                            OutputStream outputStream = getContentResolver().openOutputStream(newImageUri);
+                            if (outputStream != null) {
+                                // Sao chép dữ liệu từ InputStream sang OutputStream
+                                byte[] buffer = new byte[1024];
+                                int length;
+                                while ((length = inputStream.read(buffer)) > 0) {
+                                    outputStream.write(buffer, 0, length);
+                                }
+                                inputStream.close();
+                                outputStream.close();
+                                Toast.makeText(ImageEditActivity.this, "Ảnh đã được lưu!", Toast.LENGTH_SHORT).show();
+                            }
                         }
                     } catch (IOException e) {
                         e.printStackTrace();
                         Toast.makeText(ImageEditActivity.this, "Lỗi khi lưu ảnh!", Toast.LENGTH_SHORT).show();
                     }
                 }
+
+                Intent intent = new Intent("ACTION_LOAD");
+                LocalBroadcastManager.getInstance(ImageEditActivity.this).sendBroadcast(intent);
+
+                finish();
             }
         });
 
@@ -116,16 +129,18 @@ public class ImageEditActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (resultCode == RESULT_OK && requestCode == UCrop.REQUEST_CROP) {
+        if (resultCode == RESULT_OK && requestCode == UCrop.REQUEST_CROP) { // Activity cắt ảnh
             Uri resultUri = UCrop.getOutput(data);
             if (resultUri != null) {
-                try {
-                    editedBitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), resultUri);
-                    imageViewEdit.setImageBitmap(editedBitmap);
-                    imageUri = resultUri;
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                imageViewEdit.setImageURI(resultUri);
+                imageUri = resultUri;
+            }
+        }
+        if (requestCode == 1 && resultCode == RESULT_OK) { // Activity Filter
+            Uri resultUri = data.getData();
+            if (resultUri != null) {
+                imageViewEdit.setImageURI(resultUri);
+                imageUri = resultUri;
             }
         }
     }
