@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="100dp"
+    android:background="#C5000000"
+    android:paddingHorizontal="5dp"
+    android:paddingTop="10dp">
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/maskRecyclerView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentStart="true"
+        android:layout_toStartOf="@id/txtOkMask"
+        android:orientation="horizontal" />
+
+    <TextView
+        android:id="@+id/txtOkMask"
+        android:layout_width="40dp"
+        android:layout_height="match_parent"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
+        android:layout_marginStart="20dp"
+        android:layout_marginEnd="10dp"
+        android:gravity="center"
+        android:text="OK"
+        android:textColor="#FFFFFF"
+        android:textSize="20sp" />
+</RelativeLayout>
