@@ -24,6 +24,8 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHol
     private boolean isSelectionMode = false;
     private ImageAdapter.OnItemSelectedListener onItemSelectedListener;
 
+    private List<String> selectedImages = new ArrayList<>();
+
     public ImageAdapter(Context context, List<String> ds) {
         this.context = context;
         this.ds = ds;
@@ -70,7 +72,22 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHol
         });
 
         // Lắng nghe sự kiện checkbox
+//        holder.checkbox.setOnCheckedChangeListener((buttonView, isChecked) -> {
+//            if (onItemSelectedListener != null) {
+//                DatabaseHandler db = new DatabaseHandler(context);
+//                int imageId = db.getImageIdFromPath(imagePath);
+//                onItemSelectedListener.onItemSelected(String.valueOf(imageId), isChecked);
+//            }
+//        });
+
         holder.checkbox.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (isChecked) {
+                if (!selectedImages.contains(imagePath)) {
+                    selectedImages.add(imagePath);
+                }
+            } else {
+                selectedImages.remove(imagePath);
+            }
             if (onItemSelectedListener != null) {
                 DatabaseHandler db = new DatabaseHandler(context);
                 int imageId = db.getImageIdFromPath(imagePath);
@@ -80,8 +97,16 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHol
 
     }
 
+//    public void enableSelection(boolean isEnabled) {
+//        isSelectionMode = isEnabled;
+//        notifyDataSetChanged();
+//    }
+
     public void enableSelection(boolean isEnabled) {
         isSelectionMode = isEnabled;
+        if (!isSelectionMode) {
+            clearSelectedImages();
+        }
         notifyDataSetChanged();
     }
 
@@ -90,7 +115,6 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHol
         ds = _ds;
         isSelectionMode = false;
     }
-
 
     @Override
     public int getItemCount() {
@@ -110,5 +134,13 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHol
 
     public interface OnItemSelectedListener {
         void onItemSelected(String string, boolean isSelected);
+    }
+
+    public List<String> getSelectedImages() {
+        return selectedImages;
+    }
+
+    public void clearSelectedImages() {
+        selectedImages.clear();
     }
 }

@@ -20,7 +20,7 @@ public class ImageDetailActivity extends AppCompatActivity {
     private boolean isFavorited = false; // Trạng thái ban đầu
     private DatabaseHandler databaseHandler;
     private ImageView imageView;
-    private ImageButton btnFavorite, btnEdit, btnShare;
+    private ImageButton btnFavorite, btnEdit, btnShare, btnDelete;
     private Uri imageUri;
 
     @Override

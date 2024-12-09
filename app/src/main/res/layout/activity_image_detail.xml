@@ -73,7 +73,6 @@
             android:layout_weight="1"
             app:srcCompat="@drawable/ic_share"
             android:background="@null"/>
-
     </LinearLayout>
 
 
