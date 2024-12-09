@@ -275,11 +275,16 @@ public class MainActivity extends AppCompatActivity implements MainCallbacks{
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
             // Sau khi chụp hình, ảnh sẽ được lưu vào album
             if (imageUri != null) {
+                Load();
                 Toast.makeText(MainActivity.this, "Hình ảnh đã được lưu vào album", Toast.LENGTH_SHORT).show();
             } else {
                 Toast.makeText(MainActivity.this, "Có lỗi khi lưu hình ảnh", Toast.LENGTH_SHORT).show();
             }
         } else {
+            if (imageUri != null) {
+                getContentResolver().delete(imageUri, null, null);
+                imageUri = null;
+            }
             Toast.makeText(MainActivity.this, "Chụp hình không thành công", Toast.LENGTH_SHORT).show();
         }
     }
