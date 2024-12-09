@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <!-- Header để quay về hoặc Save -->
+    <RelativeLayout
+        android:id="@+id/filterHeader"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_alignParentTop="true"
+        android:background="#C5000000"
+        android:orientation="horizontal"
+        android:paddingStart="10dp"
+        android:paddingEnd="30dp">
+
+        <ImageButton
+            android:id="@+id/btnBack"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentTop="true"
+            android:background="@android:color/transparent"
+            android:tint="#B3FFFFFF"
+            app:srcCompat="@drawable/ic_back" />
+
+<!--        <TextView-->
+<!--            android:id="@+id/txtSave"-->
+<!--            android:layout_width="wrap_content"-->
+<!--            android:layout_height="match_parent"-->
+<!--            android:layout_alignParentTop="true"-->
+<!--            android:layout_alignParentEnd="true"-->
+<!--            android:gravity="center"-->
+<!--            android:text="Save"-->
+<!--            android:textColor="#B3FFFFFF"-->
+<!--            android:textSize="20sp" />-->
+
+        <ImageButton
+            android:id="@+id/btnCheck"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentEnd="true"
+            android:background="@android:color/transparent"
+            android:tint="#B3FFFFFF"
+            app:srcCompat="@drawable/ic_check" />
+
+    </RelativeLayout>
+
+    <!-- Ảnh đang chọn chỉnh sửa -->
+    <ImageView
+        android:id="@+id/imageViewEditFilter"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@+id/filterHeader"
+        android:layout_above="@+id/filterTools"
+        android:scaleType="fitCenter" />
+
+    <!-- Thanh công cụ chỉnh sửa -->
+    <LinearLayout
+        android:id="@+id/filterTools"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_alignParentBottom="true"
+        android:background="#C5000000"
+        android:orientation="horizontal"
+        android:paddingHorizontal="20dp">
+
+        <ImageButton
+            android:id="@+id/btnMask"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@android:color/transparent"
+            android:tint="#B3FFFFFF"
+            app:srcCompat="@drawable/ic_mask" />
+
+        <ImageButton
+            android:id="@+id/btnBrightness"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@android:color/transparent"
+            android:tint="#B3FFFFFF"
+            app:srcCompat="@drawable/ic_brightness" />
+
+        <RelativeLayout
+            android:id="@+id/brightnessBar"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:background="@android:color/transparent"
+            android:orientation="horizontal"
+            android:visibility="gone">
+
+
+            <SeekBar
+                android:id="@+id/seekBarBrightness"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_alignParentTop="true"
+                android:layout_alignParentStart="true"
+                android:layout_toStartOf="@id/txtOkBrightness"
+                android:max="200"
+                android:progress="100" />
+
+            <TextView
+                android:id="@+id/txtOkBrightness"
+                android:layout_width="40dp"
+                android:layout_height="match_parent"
+                android:layout_alignParentTop="true"
+                android:layout_alignParentEnd="true"
+                android:gravity="center"
+                android:text="OK"
+                android:textColor="#B3FFFFFF"
+                android:textSize="20sp" />
+        </RelativeLayout>
+
+        <ImageButton
+            android:id="@+id/btnContrast"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@android:color/transparent"
+            android:tint="#B3FFFFFF"
+            app:srcCompat="@drawable/ic_contrast" />
+
+        <RelativeLayout
+            android:id="@+id/contrastBar"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:background="@android:color/transparent"
+            android:orientation="horizontal"
+            android:visibility="gone">
+
+
+            <SeekBar
+                android:id="@+id/seekBarContrast"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_alignParentTop="true"
+                android:layout_alignParentStart="true"
+                android:layout_toStartOf="@id/txtOkContrast"
+                android:max="200"
+                android:progress="100" />
+
+            <TextView
+                android:id="@+id/txtOkContrast"
+                android:layout_width="40dp"
+                android:layout_height="match_parent"
+                android:layout_alignParentTop="true"
+                android:layout_alignParentEnd="true"
+                android:gravity="center"
+                android:text="OK"
+                android:textColor="#B3FFFFFF"
+                android:textSize="20sp" />
+        </RelativeLayout>
+
+    </LinearLayout>
+</RelativeLayout>
