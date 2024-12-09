@@ -1,20 +1,22 @@
 package com.example.photo_gallery_app;
 
-import static androidx.core.content.ContentProviderCompat.requireContext;
-
+import android.app.Dialog;
 import android.content.Intent;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
 import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.Toast;
+import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
-import androidx.core.content.ContextCompat;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 public class ImageDetailActivity extends AppCompatActivity {
     private boolean isFavorited = false; // Trạng thái ban đầu
@@ -107,6 +109,61 @@ public class ImageDetailActivity extends AppCompatActivity {
             return true;
         } else if (item.getItemId() == R.id.info) {
             // Xử lý sự kiện "Information"
+            String[] projection = {
+                    MediaStore.Images.Media._ID,
+                    MediaStore.Images.Media.DISPLAY_NAME,
+                    MediaStore.Images.Media.SIZE,
+                    MediaStore.Images.Media.MIME_TYPE,
+                    MediaStore.Images.Media.DATE_ADDED,
+                    MediaStore.Images.Media.WIDTH,
+                    MediaStore.Images.Media.HEIGHT
+            };
+
+            try (Cursor cursor = getContentResolver().query(imageUri, projection, null, null, null)) {
+                if (cursor != null && cursor.moveToFirst()) {
+                    // Lấy thông tin chi tiết
+                    String displayName = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DISPLAY_NAME));
+                    long size = cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Images.Media.SIZE));
+                    String mimeType = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Images.Media.MIME_TYPE));
+                    long dateAdded = cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATE_ADDED));
+                    int width = cursor.getInt(cursor.getColumnIndexOrThrow(MediaStore.Images.Media.WIDTH));
+                    int height = cursor.getInt(cursor.getColumnIndexOrThrow(MediaStore.Images.Media.HEIGHT));
+
+                    // Chuyển đổi thành đối tượng Date
+                    Date date = new Date(dateAdded * 1000); // Lưu ý: DATE_ADDED trả về giây, nên cần nhân với 1000 để chuyển thành millisecond
+
+                    // Định dạng lại thành chuỗi
+                    SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+                    String formattedDate = sdf.format(date);
+
+                    // Tạo dialog
+                    Dialog dialog = new Dialog(ImageDetailActivity.this);
+                    dialog.setContentView(R.layout.dialog_image_info);
+                    dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_background);
+
+                    dialog.getWindow().setElevation(16f);
+
+                    // Ánh xạ các View trong Dialog
+                    TextView tvImageName = dialog.findViewById(R.id.tvImageName);
+                    TextView tvImageDateAdded = dialog.findViewById(R.id.tvImageDateAdded);
+                    TextView tvImageWH = dialog.findViewById(R.id.tvImageWH);
+                    TextView tvImageSize = dialog.findViewById(R.id.tvImageSize);
+                    TextView tvImageMimeType = dialog.findViewById(R.id.tvImageMimeType);
+
+                    // Hiển thị thông tin
+                    tvImageName.setText(displayName);
+                    tvImageDateAdded.setText(formattedDate);
+                    tvImageWH.setText(width + "x" + height);
+                    tvImageSize.setText(Math.round(size / 1024) + " KB");
+                    tvImageMimeType.setText(mimeType);
+
+                    // Hiển thị Dialog
+                    dialog.show();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
             return true;
         } else if (item.getItemId() == android.R.id.home) {
             // Xử lý sự kiện "Back"

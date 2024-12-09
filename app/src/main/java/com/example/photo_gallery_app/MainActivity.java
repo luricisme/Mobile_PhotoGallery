@@ -1,8 +1,11 @@
 package com.example.photo_gallery_app;
 
 import android.Manifest;
+import android.content.BroadcastReceiver;
 import android.content.ContentValues;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
@@ -12,7 +15,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageButton;
-import android.widget.ImageView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
@@ -21,6 +23,8 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.appcompat.widget.Toolbar;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+
 import com.example.photo_gallery_app.databinding.ActivityMainBinding;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import java.util.ArrayList;
@@ -99,6 +103,10 @@ public class MainActivity extends AppCompatActivity implements MainCallbacks{
                 openCamera();
             }
         });
+
+        // Đăng ký broadcast
+        IntentFilter filter = new IntentFilter("ACTION_LOAD");
+        LocalBroadcastManager.getInstance(MainActivity.this).registerReceiver(receiver, filter);
 
         ImageButton btnDone = findViewById(R.id.btnDone);
         btnDone.setOnClickListener(v -> {
@@ -238,6 +246,25 @@ public class MainActivity extends AppCompatActivity implements MainCallbacks{
 
         startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
     }
+
+    // Lắng nghe tín hiệu yêu cầu gọi load
+    private BroadcastReceiver receiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if ("ACTION_LOAD".equals(intent.getAction())) {
+                Toast.makeText(MainActivity.this, "choose", Toast.LENGTH_SHORT).show();
+                Load(); // Gọi hàm Load
+            }
+        }
+    };
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        // Hủy đăng ký BroadcastReceiver trong onDestroy
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(receiver);
+    }
+    // Lắng nghe tín hiệu yêu cầu gọi load
 
     // Xử lý kết quả chụp hình
     @Override
