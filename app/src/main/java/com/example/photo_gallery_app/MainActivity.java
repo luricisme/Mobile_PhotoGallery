@@ -156,6 +156,7 @@ public class MainActivity extends AppCompatActivity implements MainCallbacks{
             }
             return true;
         }
+
         return super.onOptionsItemSelected(item);
     }
 
