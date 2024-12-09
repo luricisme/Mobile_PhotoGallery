@@ -56,7 +56,7 @@
         android:layout_alignParentBottom="true"
         android:background="#C5000000"
         android:orientation="horizontal"
-        android:paddingHorizontal="20dp">
+        android:paddingHorizontal="40dp">
 
         <ImageButton
             android:id="@+id/btnCrop"
@@ -75,15 +75,6 @@
             android:background="@android:color/transparent"
             android:tint="#B3FFFFFF"
             app:srcCompat="@drawable/ic_filter" />
-
-        <ImageButton
-            android:id="@+id/btnText"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:background="@android:color/transparent"
-            android:tint="#B3FFFFFF"
-            app:srcCompat="@drawable/ic_back" />
 
     </LinearLayout>
 </RelativeLayout>
