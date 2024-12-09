@@ -12,9 +12,9 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
+import android.widget.Toast;
 
 public class HomeFragment extends Fragment {
-
     public RecyclerView recyclerView;
     private ImageButton btnLayout;
     private int currentLayout = 1; // Bắt đầu với layout 1 cột
@@ -61,6 +61,12 @@ public class HomeFragment extends Fragment {
                 recyclerView.setLayoutManager(new GridLayoutManager(getContext(), 3));
                 btnLayout.setImageResource(R.drawable.ic_layout_3); // Icon cho layout 3
                 break;
+        }
+    }
+
+    public void enableSelectionMode(boolean isEnabled) {
+        if (recyclerView.getAdapter() instanceof ImageAdapter) {
+            ((ImageAdapter) recyclerView.getAdapter()).enableSelection(isEnabled);
         }
     }
 }
