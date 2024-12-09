@@ -31,7 +31,8 @@
     <FrameLayout
         android:id="@+id/frame_layout"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
+        android:layout_height="match_parent" />
+
 
     <com.google.android.material.bottomappbar.BottomAppBar
         android:id="@+id/bottomAppBar"
@@ -40,7 +41,7 @@
         android:layout_gravity="bottom"
         android:backgroundTint="@color/white"
         app:fabCradleMargin="10dp"
-        app:fabCradleRoundedCornerRadius="10dp">
+        app:fabCradleRoundedCornerRadius="0dp">
 
         <com.google.android.material.bottomnavigation.BottomNavigationView
             android:id="@+id/bottomNavigationView"
@@ -51,7 +52,6 @@
             app:labelVisibilityMode="unlabeled"
             app:menu="@menu/bottom_menu"
             app:itemIconTint="@color/bottom_nav_item_color"/>
-
     </com.google.android.material.bottomappbar.BottomAppBar>
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -62,5 +62,36 @@
         android:src="@drawable/ic_camera_thick"
         app:layout_anchor="@id/bottomAppBar"
         app:tint="@color/black"/>
+
+    <LinearLayout
+        android:id="@+id/selectedBottom"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/white"
+        android:orientation="horizontal"
+        android:padding="8dp"
+        android:gravity="center"
+        android:layout_gravity="bottom"
+        android:elevation="8dp"
+        android:visibility="gone"> <!-- Ẩn đi khi chưa chọn Select -->
+
+        <ImageButton
+            android:id="@+id/btnDone"
+            android:contentDescription="Done"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_weight="1"
+            app:srcCompat="@drawable/ic_x"
+            android:background="@null"/>
+
+        <ImageButton
+            android:id="@+id/btnDelete"
+            android:contentDescription="Delete"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_weight="1"
+            app:srcCompat="@drawable/ic_delete"
+            android:background="@null"/>
+    </LinearLayout>
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

@@ -10,6 +10,9 @@ import android.provider.MediaStore;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
@@ -36,6 +39,7 @@ public class MainActivity extends AppCompatActivity implements MainCallbacks{
     private static final HomeFragment homeFragment = new HomeFragment();
     private static final AlbumFragment albumFragment = new AlbumFragment();
     private static final FavoriteFragment favorFragment = new FavoriteFragment();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 //        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
@@ -95,6 +99,22 @@ public class MainActivity extends AppCompatActivity implements MainCallbacks{
                 openCamera();
             }
         });
+
+        ImageButton btnDone = findViewById(R.id.btnDone);
+        btnDone.setOnClickListener(v -> {
+            Fragment currentFragment = getSupportFragmentManager().findFragmentById(R.id.frame_layout);
+            if (currentFragment instanceof HomeFragment) {
+                ((HomeFragment) currentFragment).enableSelectionMode(false);
+            } else if (currentFragment instanceof FavoriteFragment) {
+                ((FavoriteFragment) currentFragment).enableSelectionMode(false);
+            }
+
+            // Khôi phục thanh điều hướng và FAB
+            binding.bottomNavigationView.inflateMenu(R.menu.bottom_menu);
+            binding.bottomAppBar.setVisibility(View.VISIBLE);
+            binding.camera.setVisibility(View.VISIBLE);
+            binding.selectedBottom.setVisibility(View.GONE);
+        });
     }
 
     @Override
@@ -104,12 +124,30 @@ public class MainActivity extends AppCompatActivity implements MainCallbacks{
             if (getSupportFragmentManager().findFragmentById(R.id.frame_layout) instanceof AlbumFragment) {
                 albumFragment.handlerSelect();
             }
-            return true;
-        } else if (item.getItemId() == R.id.delete) {
+            if (getSupportFragmentManager().findFragmentById(R.id.frame_layout) instanceof HomeFragment) {
+                HomeFragment homeFragment = (HomeFragment) getSupportFragmentManager().findFragmentById(R.id.frame_layout);
+                homeFragment.enableSelectionMode(true);
+                Toast.makeText(this, "Chế độ chọn ảnh được bật", Toast.LENGTH_SHORT).show();
+            }
+            if (getSupportFragmentManager().findFragmentById(R.id.frame_layout) instanceof FavoriteFragment) {
+                FavoriteFragment favoriteFragment = (FavoriteFragment) getSupportFragmentManager().findFragmentById(R.id.frame_layout);
+                favoriteFragment.enableSelectionMode(true);
+                Toast.makeText(this, "Chế độ chọn ảnh được bật", Toast.LENGTH_SHORT).show();
+            }
 
+            binding.bottomNavigationView.getMenu().clear();
+            binding.bottomAppBar.setVisibility(View.GONE);
+            binding.camera.setVisibility(View.GONE);
+            binding.selectedBottom.setVisibility(View.VISIBLE);
+
+            // Log trạng thái của selectedBottom
+            if (binding.selectedBottom.getVisibility() == View.VISIBLE) {
+                Log.d("DEBUG", "selectedBottom đã được hiển thị.");
+            } else {
+                Log.d("DEBUG", "selectedBottom không được hiển thị.");
+            }
             return true;
         }
-
         return super.onOptionsItemSelected(item);
     }
 

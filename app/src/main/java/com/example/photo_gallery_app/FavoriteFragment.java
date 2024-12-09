@@ -64,4 +64,10 @@ public class FavoriteFragment extends Fragment {
                 break;
         }
     }
+
+    public void enableSelectionMode(boolean isEnabled) {
+        if (recyclerView.getAdapter() instanceof ImageAdapter) {
+            ((ImageAdapter) recyclerView.getAdapter()).enableSelection(isEnabled);
+        }
+    }
 }
