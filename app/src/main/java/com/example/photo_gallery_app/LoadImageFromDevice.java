@@ -25,7 +25,7 @@ public class LoadImageFromDevice {
 
     // Lấy ảnh từ MediaStore và lưu vào database nếu chưa có
     public void loadImagesFromDevice(Context context) {
-        //SdatabaseHandler.deleteAllPhotos();
+        //databaseHandler.deleteAllPhotos();
         try {
             String[] projection = {
                     MediaStore.Images.ImageColumns._ID,

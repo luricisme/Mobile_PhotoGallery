@@ -315,7 +315,7 @@ public class MainActivity extends AppCompatActivity implements MainCallbacks{
                 boolean imageDeleted = data.getBooleanExtra("imageDeleted", false);
                 if (imageDeleted) {
                     Load(); // Gọi hàm để tải lại danh sách ảnh
-                    Toast.makeText(this, "Image deleted", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "Image deleted success", Toast.LENGTH_SHORT).show();
                 }
             }
         }
