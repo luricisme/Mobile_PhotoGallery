@@ -33,6 +33,7 @@ import java.util.List;
 public class MainActivity extends AppCompatActivity implements MainCallbacks{
     ActivityMainBinding binding;
     private static final int REQUEST_IMAGE_CAPTURE = 1;
+    private static final int REQUEST_CODE_DETAIL = 2;
     private Uri imageUri;
     public LoadImageFromDevice loadImageFromDevice = new LoadImageFromDevice(this);
     //private RecyclerView recyclerView;
@@ -190,6 +191,7 @@ public class MainActivity extends AppCompatActivity implements MainCallbacks{
 
     public void Load(){
         //Toast.makeText(this, "choose", Toast.LENGTH_SHORT).show();
+        imageAdapter.notifyDataSetChanged();
         loadImageFromDevice.loadImagesFromDevice((this));
         loadImageFromDevice.loadImagesFromDatabase(this, ds, imageAdapter, homeFragment.recyclerView);
     }
@@ -267,25 +269,56 @@ public class MainActivity extends AppCompatActivity implements MainCallbacks{
     }
     // Lắng nghe tín hiệu yêu cầu gọi load
 
-    // Xử lý kết quả chụp hình
+//    // Xử lý kết quả chụp hình
+//    @Override
+//    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+//        super.onActivityResult(requestCode, resultCode, data);
+//
+//        if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
+//            // Sau khi chụp hình, ảnh sẽ được lưu vào album
+//            if (imageUri != null) {
+//                Load();
+//                Toast.makeText(MainActivity.this, "Hình ảnh đã được lưu vào album", Toast.LENGTH_SHORT).show();
+//            } else {
+//                Toast.makeText(MainActivity.this, "Có lỗi khi lưu hình ảnh", Toast.LENGTH_SHORT).show();
+//            }
+//        } else {
+//            if (imageUri != null) {
+//                getContentResolver().delete(imageUri, null, null);
+//                imageUri = null;
+//            }
+//            Toast.makeText(MainActivity.this, "Chụp hình không thành công", Toast.LENGTH_SHORT).show();
+//        }
+//    }
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
-            // Sau khi chụp hình, ảnh sẽ được lưu vào album
-            if (imageUri != null) {
-                Load();
-                Toast.makeText(MainActivity.this, "Hình ảnh đã được lưu vào album", Toast.LENGTH_SHORT).show();
+        if (requestCode == REQUEST_IMAGE_CAPTURE) {
+            if (resultCode == RESULT_OK) {
+                if (imageUri != null) {
+                    Load();
+                    Toast.makeText(this, "Hình ảnh đã được lưu vào album", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(this, "Có lỗi khi lưu hình ảnh", Toast.LENGTH_SHORT).show();
+                }
             } else {
-                Toast.makeText(MainActivity.this, "Có lỗi khi lưu hình ảnh", Toast.LENGTH_SHORT).show();
+                if (imageUri != null) {
+                    getContentResolver().delete(imageUri, null, null);
+                    imageUri = null;
+                }
+                Toast.makeText(this, "Chụp hình không thành công", Toast.LENGTH_SHORT).show();
             }
-        } else {
-            if (imageUri != null) {
-                getContentResolver().delete(imageUri, null, null);
-                imageUri = null;
+        } else if (requestCode == REQUEST_CODE_DETAIL) {
+            if (resultCode == RESULT_OK) {
+                boolean imageDeleted = data.getBooleanExtra("imageDeleted", false);
+                if (imageDeleted) {
+                    Load(); // Gọi hàm để tải lại danh sách ảnh
+                    Toast.makeText(this, "Image deleted", Toast.LENGTH_SHORT).show();
+                }
             }
-            Toast.makeText(MainActivity.this, "Chụp hình không thành công", Toast.LENGTH_SHORT).show();
         }
     }
+
 }

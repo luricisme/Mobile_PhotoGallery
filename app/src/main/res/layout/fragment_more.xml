@@ -22,7 +22,8 @@
         android:drawableLeft="@drawable/ic_change_password"
         android:drawablePadding="8dp"
         android:text="Change Password"
-        android:textSize="20dp" />
+        android:textSize="20dp"
+        android:fontFamily="@font/poppins_regular"/>
 
     <TextView
         android:id="@+id/txtLanguage"
@@ -33,7 +34,8 @@
         android:drawableLeft="@drawable/ic_language"
         android:drawablePadding="8dp"
         android:text="Language"
-        android:textSize="20dp" />
+        android:textSize="20dp"
+        android:fontFamily="@font/poppins_regular"/>
 
     <TextView
         android:id="@+id/txtAbout"
@@ -44,6 +46,7 @@
         android:drawableLeft="@drawable/ic_about"
         android:drawablePadding="8dp"
         android:text="About"
-        android:textSize="20dp" />
+        android:textSize="20dp"
+        android:fontFamily="@font/poppins_regular"/>
 
 </LinearLayout>
