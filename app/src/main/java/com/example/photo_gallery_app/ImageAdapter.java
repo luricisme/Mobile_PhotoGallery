@@ -48,7 +48,6 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHol
 
     @Override
     public void onBindViewHolder(@NonNull ImageViewHolder holder, int position) {
-
         String imagePath = ds.get(position);
 //        Toast.makeText(context, "Đã thêm " + imagePath, Toast.LENGTH_SHORT).show();
 

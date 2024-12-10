@@ -25,7 +25,6 @@ public class HomeFragment extends Fragment {
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_home, container, false);
 
-        // Sử dụng view để truy cập RecyclerView
         recyclerView = view.findViewById(R.id.recyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
 
@@ -46,20 +45,20 @@ public class HomeFragment extends Fragment {
 
     private void switchLayout() {
         currentLayout++; // Tăng kiểu layout
-        if (currentLayout > 3) currentLayout = 1; // Quay lại 1 cột nếu vượt quá 3 cột
+        if (currentLayout > 3) currentLayout = 1;
 
         switch (currentLayout) {
             case 1:
                 recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-                btnLayout.setImageResource(R.drawable.ic_layout_1); // Icon cho layout 1
+                btnLayout.setImageResource(R.drawable.ic_layout_1);
                 break;
             case 2:
                 recyclerView.setLayoutManager(new GridLayoutManager(getContext(), 2));
-                btnLayout.setImageResource(R.drawable.ic_layout_2); // Icon cho layout 2
+                btnLayout.setImageResource(R.drawable.ic_layout_2);
                 break;
             case 3:
                 recyclerView.setLayoutManager(new GridLayoutManager(getContext(), 3));
-                btnLayout.setImageResource(R.drawable.ic_layout_3); // Icon cho layout 3
+                btnLayout.setImageResource(R.drawable.ic_layout_3);
                 break;
         }
     }
