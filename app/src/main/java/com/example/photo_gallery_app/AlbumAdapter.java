@@ -55,6 +55,7 @@ public class AlbumAdapter extends RecyclerView.Adapter<AlbumAdapter.AlbumViewHol
 
         List<String> photoPaths = databaseHandler.getPhotosByAlbumId(album.getId());
         List<String> allPhotoPaths = databaseHandler.getAllPhotoPaths();
+        List<String> allPhotoPathsFavor = databaseHandler.getFavoritePhotoPaths();
 
         if (!photoPaths.isEmpty()) {
             // Hiển thị ảnh đầu tiên trong album
@@ -64,7 +65,11 @@ public class AlbumAdapter extends RecyclerView.Adapter<AlbumAdapter.AlbumViewHol
             holder.imgThumbnail.setImageURI(photoUri); // Hiển thị ảnh bằng URI
         } else if (!allPhotoPaths.isEmpty()) {
             // Hiển thị ảnh đầu tiên trong album
-            String firstPhotoPath = allPhotoPaths.get(0); // Đường dẫn ảnh đầu tiên
+            String firstPhotoPath = allPhotoPathsFavor.get(0);
+            if (album.getName().equals("All Photos")){
+                firstPhotoPath = allPhotoPaths.get(0);
+            }
+             // Đường dẫn ảnh đầu tiên
             Uri photoUri = Uri.parse(firstPhotoPath); // Chuyển đổi đường dẫn thành URI
 
             holder.imgThumbnail.setImageURI(photoUri); // Hiển thị ảnh bằng URI
