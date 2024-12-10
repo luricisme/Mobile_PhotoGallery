@@ -227,20 +227,25 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         return photoPaths;
     }
 
-    // Xóa ảnh
     public void deletePhoto(int id) {
         SQLiteDatabase db = this.getWritableDatabase();
-        Cursor cursor = db.query(TABLE_PHOTOS, new String[]{COLUMN_FILE_PATH}, COLUMN_ID + " = ?", new String[]{String.valueOf(id)}, null, null, null);
-        if (cursor != null && cursor.moveToFirst()) {
-            String filePath = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_FILE_PATH));
-            String deleteDate = String.valueOf(System.currentTimeMillis());
-            addDeletedPhoto(filePath, deleteDate);
-            cursor.close();
-
-            db.delete(TABLE_PHOTOS, COLUMN_ID + " = ?", new String[]{String.valueOf(id)});
+        Cursor cursor = null;
+        try {
+            cursor = db.query(TABLE_PHOTOS, new String[]{COLUMN_FILE_PATH}, COLUMN_ID + " = ?", new String[]{String.valueOf(id)}, null, null, null);
+            if (cursor != null && cursor.moveToFirst()) {
+                String filePath = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_FILE_PATH));
+                String deleteDate = String.valueOf(System.currentTimeMillis());
+                addDeletedPhoto(filePath, deleteDate);
+                db.delete(TABLE_PHOTOS, COLUMN_ID + " = ?", new String[]{String.valueOf(id)});
+            }
+        } finally {
+            if (cursor != null) {
+                cursor.close();
+            }
+            db.close();
         }
-        db.close();
     }
+
 
     // Thêm ảnh đã xóa vào bảng photo_deleted
     private void addDeletedPhoto(String filePath, String deleteDate) {
@@ -286,20 +291,24 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         return totalFavorited;
     }
 
-    // lấy id dưa trên path ảnh
     public int getImageIdFromPath(String imagePath) {
         SQLiteDatabase db = this.getReadableDatabase();
-        Cursor cursor = db.query(TABLE_PHOTOS, new String[]{"id"}, "file_path = ?", new String[]{imagePath}, null, null, null);
+        Cursor cursor = null;
 
-        if (cursor != null && cursor.moveToFirst()) {
-            @SuppressLint("Range") int imageId = cursor.getInt(cursor.getColumnIndex("id"));
-            cursor.close();
-            return imageId;
+        try {
+            cursor = db.query(TABLE_PHOTOS, new String[]{COLUMN_ID}, COLUMN_FILE_PATH + " = ?",
+                    new String[]{imagePath}, null, null, null);
+
+            if (cursor != null && cursor.moveToFirst()) {
+                return cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_ID));
+            }
+        } finally {
+            if (cursor != null) {
+                cursor.close();
+            }
+            db.close();
         }
 
-        if (cursor != null) {
-            cursor.close();
-        }
         return -1; // Trả về -1 nếu không tìm thấy ID
     }
 

@@ -18,6 +18,7 @@
 
     import androidx.appcompat.app.AppCompatActivity;
     import androidx.appcompat.widget.Toolbar;
+    import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
     import java.text.SimpleDateFormat;
     import java.util.Date;
@@ -95,27 +96,37 @@
             btnDelete.setOnClickListener(v -> {
                 if (imageUri != null) {
                     try {
+                        // Also delete the image from the database
+                        //DatabaseHandler dbHandler = new DatabaseHandler(this);
+                        String imagePath2 = getRealPathFromURI(imageUri); // Get the actual file path from the URI
+                        int imageId = databaseHandler.getImageIdFromPath(imageUri.toString());
+                        Toast.makeText(this, "joo" + imageId, Toast.LENGTH_SHORT).show();
                         // Try deleting the image from the MediaStore
                         ContentResolver contentResolver = getContentResolver();
                         int rowsDeleted = contentResolver.delete(imageUri, null, null);
 
                         if (rowsDeleted > 0) {
                             Toast.makeText(this, "Image deleted successfully", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(this, imageUri.toString(), Toast.LENGTH_SHORT).show();
 
-                            // Also delete the image from the database
-                            DatabaseHandler dbHandler = new DatabaseHandler(this);
-                            String imagePath2 = getRealPathFromURI(imageUri); // Get the actual file path from the URI
-                            int imageId = dbHandler.getImageIdFromPath(imagePath2);
+
 
                             if (imageId != -1) {
-                                dbHandler.deletePhoto(imageId); // Delete from database if image ID is found
+                                Toast.makeText(this, "joo00000 " + imageId, Toast.LENGTH_SHORT).show();
+                                //databaseHandler.deletePhoto(imageId);
+                                databaseHandler.deleteAllPhotos();
+                                // Delete from database if image ID is found
                             }
 
                             // Return to the previous activity with a result indicating the image was deleted
-                            Intent returnIntent = new Intent();
-                            returnIntent.putExtra("imageDeleted", true);
-                            setResult(RESULT_OK, returnIntent);
-                            finish(); // End the current activity and go back
+//                            Intent resultIntent = new Intent();
+//                            resultIntent.putExtra("imageDeleted", true);  // Truyền thông tin (ví dụ: ảnh đã bị xóa)
+//                            setResult(RESULT_OK, resultIntent);
+//                            finish();
+                            Intent resultIntent = new Intent("ACTION_LOAD");
+                            LocalBroadcastManager.getInstance(ImageDetailActivity.this).sendBroadcast(resultIntent);
+
+                            finish();
                         } else {
                             Toast.makeText(this, "Failed to delete image", Toast.LENGTH_SHORT).show();
                         }
