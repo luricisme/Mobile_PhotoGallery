@@ -100,19 +100,19 @@
                         //DatabaseHandler dbHandler = new DatabaseHandler(this);
                         String imagePath2 = getRealPathFromURI(imageUri); // Get the actual file path from the URI
                         int imageId = databaseHandler.getImageIdFromPath(imageUri.toString());
-                        Toast.makeText(this, "joo" + imageId, Toast.LENGTH_SHORT).show();
+                        //Toast.makeText(this, "joo" + imageId, Toast.LENGTH_SHORT).show();
                         // Try deleting the image from the MediaStore
                         ContentResolver contentResolver = getContentResolver();
                         int rowsDeleted = contentResolver.delete(imageUri, null, null);
 
                         if (rowsDeleted > 0) {
-                            Toast.makeText(this, "Image deleted successfully", Toast.LENGTH_SHORT).show();
-                            Toast.makeText(this, imageUri.toString(), Toast.LENGTH_SHORT).show();
+                            //Toast.makeText(this, "Image deleted successfully", Toast.LENGTH_SHORT).show();
+                            //Toast.makeText(this, imageUri.toString(), Toast.LENGTH_SHORT).show();
 
 
 
                             if (imageId != -1) {
-                                Toast.makeText(this, "joo00000 " + imageId, Toast.LENGTH_SHORT).show();
+                                //Toast.makeText(this, "joo00000 " + imageId, Toast.LENGTH_SHORT).show();
                                 //databaseHandler.deletePhoto(imageId);
                                 databaseHandler.deleteAllPhotos();
                                 // Delete from database if image ID is found

@@ -260,6 +260,11 @@ public class MainActivity extends AppCompatActivity implements MainCallbacks{
             }
         }
     };
+    @Override
+    protected void onRestart() {
+        super.onRestart();
+        Load();
+    }
 
     @Override
     protected void onDestroy() {
@@ -299,7 +304,7 @@ public class MainActivity extends AppCompatActivity implements MainCallbacks{
             if (resultCode == RESULT_OK) {
                 if (imageUri != null) {
                     Load();
-                    Toast.makeText(this, "Hình ảnh đã được lưu vào album", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "Hình ảnh đã được lưu vào ứng dụng", Toast.LENGTH_SHORT).show();
                 } else {
                     Toast.makeText(this, "Có lỗi khi lưu hình ảnh", Toast.LENGTH_SHORT).show();
                 }

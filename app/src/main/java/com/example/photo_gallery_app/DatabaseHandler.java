@@ -12,7 +12,7 @@ import java.util.List;
 
 public class DatabaseHandler extends SQLiteOpenHelper {
     private static final String DATABASE_NAME = "PhotoAlbum.db";
-    private static final int DATABASE_VERSION = 6;
+    private static final int DATABASE_VERSION = 8;
 
     // Table and columns (photos)
     private static final String TABLE_PHOTOS = "photos";
