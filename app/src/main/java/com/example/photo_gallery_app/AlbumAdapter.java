@@ -63,10 +63,13 @@ public class AlbumAdapter extends RecyclerView.Adapter<AlbumAdapter.AlbumViewHol
             Uri photoUri = Uri.parse(firstPhotoPath); // Chuyển đổi đường dẫn thành URI
 
             holder.imgThumbnail.setImageURI(photoUri); // Hiển thị ảnh bằng URI
-        } else if (!allPhotoPaths.isEmpty()) {
+        } else if (!allPhotoPaths.isEmpty() || !allPhotoPathsFavor.isEmpty()) {
+            String firstPhotoPath = "";
             // Hiển thị ảnh đầu tiên trong album
-            String firstPhotoPath = allPhotoPathsFavor.get(0);
-            if (album.getName().equals("All Photos")){
+            if (!allPhotoPathsFavor.isEmpty()){
+                firstPhotoPath = allPhotoPathsFavor.get(0);
+            }
+            if (!allPhotoPaths.isEmpty() && album.getName().equals("All Photos")){
                 firstPhotoPath = allPhotoPaths.get(0);
             }
              // Đường dẫn ảnh đầu tiên
