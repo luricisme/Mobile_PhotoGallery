@@ -24,7 +24,9 @@
     <androidx.viewpager2.widget.ViewPager2
         android:id="@+id/viewPager"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
+        android:layout_height="match_parent"
+        android:layout_above="@+id/bottomTool"
+        android:layout_below="@+id/appBarLayoutDetail"/>
 
     <LinearLayout
         android:id="@+id/bottomTool"
