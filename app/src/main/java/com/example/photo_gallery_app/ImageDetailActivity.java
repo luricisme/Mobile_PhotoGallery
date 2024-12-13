@@ -23,6 +23,8 @@
     import androidx.localbroadcastmanager.content.LocalBroadcastManager;
     import androidx.viewpager2.widget.ViewPager2;
 
+    import com.github.chrisbanes.photoview.PhotoView;
+
     import java.text.SimpleDateFormat;
     import java.util.ArrayList;
     import java.util.Date;
@@ -104,6 +106,13 @@
 
                         // Cập nhật vị trí hiện tại
                         currentPosition = position;
+
+                        // Tìm view liên quan đến ảnh ở vị trí này
+                        View view = viewPager.findViewWithTag("view_" + position);
+                        if (view != null) {
+                            PhotoView imageView = view.findViewById(R.id.imageView);
+                            imageView.setScale(1f, true);  // Đặt lại tỷ lệ 1:1
+                        }
 
                         // Lấy đường dẫn ảnh của vị trí hiện tại
                         String imagePath = imagePaths.get(currentPosition);

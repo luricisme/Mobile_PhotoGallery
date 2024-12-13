@@ -11,6 +11,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.github.chrisbanes.photoview.PhotoView;
 
 import java.util.List;
 
@@ -34,6 +35,9 @@ public class ImagePagerAdapter extends RecyclerView.Adapter<ImagePagerAdapter.Vi
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         String imagePath = imagePathList.get(position);
 
+        // Gán tag cho ViewHolder để nhận diện khi cần
+        holder.itemView.setTag("view_" + position);
+
         Glide.with(context)
                 .load(Uri.parse(imagePath))
                 .error(R.drawable.error_image)
@@ -46,7 +50,7 @@ public class ImagePagerAdapter extends RecyclerView.Adapter<ImagePagerAdapter.Vi
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
-        ImageView imageView;
+        PhotoView imageView;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
