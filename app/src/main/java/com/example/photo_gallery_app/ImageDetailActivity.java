@@ -11,25 +11,35 @@
     import android.provider.MediaStore;
     import android.view.Menu;
     import android.view.MenuItem;
+    import android.view.View;
     import android.widget.ImageButton;
     import android.widget.ImageView;
     import android.widget.TextView;
     import android.widget.Toast;
 
+    import androidx.annotation.NonNull;
     import androidx.appcompat.app.AppCompatActivity;
     import androidx.appcompat.widget.Toolbar;
     import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+    import androidx.viewpager2.widget.ViewPager2;
 
     import java.text.SimpleDateFormat;
+    import java.util.ArrayList;
     import java.util.Date;
+    import java.util.List;
 
     public class ImageDetailActivity extends AppCompatActivity {
         private static final int REQUEST_CODE_PERMISSION = 1;
         private boolean isFavorited = false; // Trạng thái ban đầu
         private DatabaseHandler databaseHandler;
-        private ImageView imageView;
+//        private ImageView imageView;
         private ImageButton btnFavorite, btnEdit, btnShare, btnDelete;
         private Uri imageUri;
+
+        private ViewPager2 viewPager;
+        private List<String> imagePaths = new ArrayList<>();
+        private String currentImagePath; // Đường dẫn của ảnh chọn vô (từ activity trước - cố định)
+        private int currentPosition; // Vị trí hiện tại (khi lướt qua lại sẽ cập nhật - code bên dưới)
 
         @Override
         protected void onCreate(Bundle savedInstanceState) {
@@ -43,31 +53,93 @@
             getSupportActionBar().setDisplayShowTitleEnabled(false);
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-            imageView = findViewById(R.id.imageViewDetail);
+//            imageView = findViewById(R.id.imageViewDetail);
             btnFavorite = findViewById(R.id.btnFavorite);
 
             // Khởi tạo đối tượng DatabaseHandler
             databaseHandler = new DatabaseHandler(this);
 
-            // Lấy đường dẫn ảnh từ Intent - Lấy từ bên MainActivity.java
+//            // Lấy đường dẫn ảnh từ Intent - Lấy từ bên MainActivity.java
+//            Intent intent = getIntent();
+//            String imagePath = intent.getStringExtra("imagePath");
+
+
+            // Khởi tạo ViewPager2
+            viewPager = findViewById(R.id.viewPager);
+
+            // Lấy danh sách ảnh và chỉ số ảnh hiện tại từ Intent
             Intent intent = getIntent();
-            String imagePath = intent.getStringExtra("imagePath");
+            imagePaths = intent.getStringArrayListExtra("imagePaths");  // Lưu tất cả đường dẫn ảnh
+            currentImagePath = intent.getStringExtra("currentImagePath");  // Đường dẫn ảnh đang được chọn
 
-            if (imagePath != null) {
-                imageUri = Uri.parse(imagePath);
-                // Hiển thị hình ảnh chi tiết ở đây
-                imageView.setImageURI(imageUri);
+            if (imagePaths != null && !imagePaths.isEmpty()) {
+                // Xác định vị trí ảnh hiện tại
+                currentPosition = imagePaths.indexOf(currentImagePath);
 
-                // Lấy trạng thái "favor" từ database
+                // Thiết lập Adapter cho ViewPager2
+                ImagePagerAdapter adapter = new ImagePagerAdapter(this, imagePaths);
+                viewPager.setAdapter(adapter);
+
+                // Đặt ảnh hiện tại
+                viewPager.setCurrentItem(currentPosition, false);
+
+                // Hiệu ứng chuyển
+                viewPager.setPageTransformer(new ViewPager2.PageTransformer() {
+                    @Override
+                    public void transformPage(@NonNull View page, float position) {
+                        float scaleFactor = 0.85f + (1 - Math.abs(position)) * 0.15f; // Tính tỷ lệ phóng đại
+                        page.setScaleX(scaleFactor);  // Áp dụng phóng đại theo chiều ngang
+                        page.setScaleY(scaleFactor);  // Áp dụng phóng đại theo chiều dọc
+
+                        // Chỉnh độ mờ của trang tùy theo vị trí
+                        page.setAlpha(0.5f + (1 - Math.abs(position)) * 0.5f);
+                    }
+                });
+
+                // Cập nhật các thứ khi chuyển qua lại ảnh
+                viewPager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
+                    @Override
+                    public void onPageSelected(int position) {
+                        super.onPageSelected(position);
+
+                        // Cập nhật vị trí hiện tại
+                        currentPosition = position;
+
+                        // Lấy đường dẫn ảnh của vị trí hiện tại
+                        String imagePath = imagePaths.get(currentPosition);
+
+                        // Cập nhật trạng thái yêu thích từ database
+                        isFavorited = databaseHandler.getPhotoFavorStatus(imagePath);
+                        updateFavorIcon(btnFavorite, isFavorited);
+
+                        // Cài đặt sự kiện click cho nút "Favor"
+                        btnFavorite.setOnClickListener(v -> {
+                            isFavorited = !isFavorited; // Đổi trạng thái yêu thích
+                            databaseHandler.updatePhotoFavorStatus(imagePath, isFavorited);
+                            updateFavorIcon(btnFavorite, isFavorited);
+                        });
+
+
+                        // Cập nhật imageUri để xài cho mấy nút khác
+                        imageUri = Uri.parse(imagePath);
+                    }
+                });
+
+                // Lấy trạng thái "favor" từ database - Lần đầu chọn
+                String imagePath = imagePaths.get(currentPosition);
                 isFavorited = databaseHandler.getPhotoFavorStatus(imagePath);
                 updateFavorIcon(btnFavorite, isFavorited);
 
-                // Xử lý sự kiện click nút "Favor"
+                // Xử lý sự kiện click nút "Favor" - Lần đầu chọn
                 btnFavorite.setOnClickListener(v -> {
                     isFavorited = !isFavorited; // Đổi trạng thái
                     databaseHandler.updatePhotoFavorStatus(imagePath, isFavorited);
                     updateFavorIcon(btnFavorite, isFavorited);
                 });
+
+                // Đặt uri cho ảnh - Lần đầu chọn
+                imageUri = Uri.parse(currentImagePath);
+
             }
 
             btnEdit = findViewById(R.id.btnEdit);
@@ -76,7 +148,7 @@
             btnEdit.setOnClickListener(v -> {
                 Intent editIntent = new Intent(ImageDetailActivity.this, ImageEditActivity.class);
                 editIntent.putExtra("imageUri", imageUri.toString()); // Gửi đường dẫn ảnh Uri qua Intent
-                startActivity(editIntent);
+                startActivityForResult(editIntent, 1);
             });
 
             btnShare.setOnClickListener(v -> {
@@ -250,5 +322,27 @@
                 return true;
             }
             return super.onOptionsItemSelected(item);
+        }
+
+        @Override
+        protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+            super.onActivityResult(requestCode, resultCode, data);
+
+            if (requestCode == 1 && resultCode == RESULT_OK) {
+                if (data != null) {
+                    // Lấy đường dẫn ảnh đã chỉnh sửa
+                    String editedImagePath = data.getStringExtra("editedImagePath");
+
+                    // Thêm ảnh mới vào cuối danh sách
+                    imagePaths.add(editedImagePath);
+
+                    // Cập nhật lại adapter của ViewPager2 để hiển thị ảnh mới
+                    ImagePagerAdapter adapter = (ImagePagerAdapter) viewPager.getAdapter();
+                    adapter.notifyItemInserted(imagePaths.size() - 1);
+
+                    // Cập nhật vị trí ảnh hiện tại để hiển thị ảnh mới
+                    viewPager.setCurrentItem(imagePaths.size() - 1, false);
+                }
+            }
         }
     }

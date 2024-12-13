@@ -18,6 +18,9 @@ public class HomeFragment extends Fragment {
     public RecyclerView recyclerView;
     private ImageButton btnLayout;
     private int currentLayout = 1; // Bắt đầu với layout 1 cột
+    private LinearLayoutManager linearLayoutManager;
+    private GridLayoutManager gridLayoutManager2;
+    private GridLayoutManager gridLayoutManager3;
 
     @SuppressLint("MissingInflatedId")
     @Override
@@ -26,7 +29,15 @@ public class HomeFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_home, container, false);
 
         recyclerView = view.findViewById(R.id.recyclerView);
-        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+        linearLayoutManager = new LinearLayoutManager(getContext());
+        gridLayoutManager2 = new GridLayoutManager(getContext(), 2);
+        gridLayoutManager3 = new GridLayoutManager(getContext(), 3);
+        recyclerView.setLayoutManager(linearLayoutManager);
+
+//        recyclerView.setItemViewCacheSize(30);
+//        gridLayoutManager2.setInitialPrefetchItemCount(6);
+//        gridLayoutManager3.setInitialPrefetchItemCount(9);
+
 
         // Tìm nút chuyển đổi layout
         btnLayout = view.findViewById(R.id.btn_change_layout);
@@ -49,15 +60,15 @@ public class HomeFragment extends Fragment {
 
         switch (currentLayout) {
             case 1:
-                recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+                recyclerView.setLayoutManager(linearLayoutManager);
                 btnLayout.setImageResource(R.drawable.ic_layout_1);
                 break;
             case 2:
-                recyclerView.setLayoutManager(new GridLayoutManager(getContext(), 2));
+                recyclerView.setLayoutManager(gridLayoutManager2);
                 btnLayout.setImageResource(R.drawable.ic_layout_2);
                 break;
             case 3:
-                recyclerView.setLayoutManager(new GridLayoutManager(getContext(), 3));
+                recyclerView.setLayoutManager(gridLayoutManager3);
                 btnLayout.setImageResource(R.drawable.ic_layout_3);
                 break;
         }
