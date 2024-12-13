@@ -49,5 +49,9 @@ dependencies {
 
     // Thêm thư viện uCrop
     implementation("com.github.yalantis:ucrop:2.2.10") // Phiên bản mới nhất
+
+    // thư viện glide
+    implementation ("com.github.bumptech.glide:glide:4.15.1")
+    annotationProcessor ("com.github.bumptech.glide:compiler:4.15.1")
 }
 

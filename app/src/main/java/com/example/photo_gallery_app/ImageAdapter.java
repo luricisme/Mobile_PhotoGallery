@@ -15,6 +15,8 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -51,8 +53,13 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHol
         String imagePath = ds.get(position);
 //        Toast.makeText(context, "Đã thêm " + imagePath, Toast.LENGTH_SHORT).show();
 
-        holder.imvThem.setImageURI(Uri.parse(imagePath));  // Nếu là URI
+        //holder.imvThem.setImageURI(Uri.parse(imagePath));  // Nếu là URI
         //holder.imvThem.setImageBitmap(BitmapFactory.decodeFile(imagePath)); // Nếu là đường dẫn file
+
+        Glide.with(context)
+                .load(Uri.parse(imagePath))
+                .error(R.drawable.error_image)       // Ảnh lỗi nếu tải không thành công
+                .into(holder.imvThem);              // Đưa ảnh vào ImageView
 
         if (isSelectionMode) {
             holder.checkbox.setVisibility(View.VISIBLE);
@@ -65,7 +72,14 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHol
             if (!isSelectionMode) {
                 // Ở đây mở một activity mới để hiển thị ảnh chi tiết
                 Intent intent = new Intent(context, ImageDetailActivity.class);
-                intent.putExtra("imagePath", imagePath);
+
+                // Truyền danh sách các đường dẫn ảnh vào Activity
+                intent.putStringArrayListExtra("imagePaths", (ArrayList<String>) ds); // ds là danh sách ảnh
+
+                // Truyền đường dẫn ảnh hiện tại vào Activity (ảnh đang được chọn)
+                intent.putExtra("currentImagePath", imagePath); // imagePath là đường dẫn ảnh đang được bấm
+
+//                intent.putExtra("imagePath", imagePath);
                 context.startActivity(intent);
             }
         });

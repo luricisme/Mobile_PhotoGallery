@@ -107,6 +107,13 @@ public class ImageEditActivity extends AppCompatActivity {
                                 inputStream.close();
                                 outputStream.close();
                                 Toast.makeText(ImageEditActivity.this, "Ảnh đã được lưu!", Toast.LENGTH_SHORT).show();
+
+                                Intent intent = new Intent("ACTION_LOAD");
+                                LocalBroadcastManager.getInstance(ImageEditActivity.this).sendBroadcast(intent);
+
+                                Intent resultIntent = new Intent();
+                                resultIntent.putExtra("editedImagePath", newImageUri.toString()); // Trả lại URI của ảnh đã chỉnh sửa
+                                setResult(RESULT_OK, resultIntent); // Trả kết quả về ImageDetailActivity
                             }
                         }
                     } catch (IOException e) {
@@ -115,8 +122,6 @@ public class ImageEditActivity extends AppCompatActivity {
                     }
                 }
 
-                Intent intent = new Intent("ACTION_LOAD");
-                LocalBroadcastManager.getInstance(ImageEditActivity.this).sendBroadcast(intent);
 
                 finish();
             }
