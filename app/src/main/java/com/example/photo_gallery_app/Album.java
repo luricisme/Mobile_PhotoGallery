@@ -4,11 +4,13 @@ public class Album {
     private int id;
     private String name;
     private int photoCount;
+    private String firstPhotoPath; // Đường dẫn ảnh đầu tiên
 
-    public Album(int id, String name, int photoCount) {
+    public Album(int id, String name, int photoCount, String firstPhotoPath) {
         this.id = id;
         this.name = name;
         this.photoCount = photoCount;
+        this.firstPhotoPath = firstPhotoPath;
     }
 
     public int getId() {
@@ -33,6 +35,14 @@ public class Album {
 
     public void setPhotoCount(int photoCount) {
         this.photoCount = photoCount;
+    }
+
+    public String getFirstPhotoPath() {
+        return firstPhotoPath;
+    }
+
+    public void setFirstPhotoPath(String firstPhotoPath) {
+        this.firstPhotoPath = firstPhotoPath;
     }
 }
 

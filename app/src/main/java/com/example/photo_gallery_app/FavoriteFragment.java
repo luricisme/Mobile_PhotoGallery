@@ -49,18 +49,22 @@ public class FavoriteFragment extends Fragment {
         currentLayout++; // Tăng kiểu layout
         if (currentLayout > 3) currentLayout = 1; // Quay lại 1 cột nếu vượt quá 3 cột
 
+        setImageLayout();
+    }
+
+    public void setImageLayout() {
         switch (currentLayout) {
             case 1:
                 recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-                btnLayout.setImageResource(R.drawable.ic_layout_1); // Icon cho layout 1
+                btnLayout.setImageResource(R.drawable.ic_layout_1);
                 break;
             case 2:
                 recyclerView.setLayoutManager(new GridLayoutManager(getContext(), 2));
-                btnLayout.setImageResource(R.drawable.ic_layout_2); // Icon cho layout 2
+                btnLayout.setImageResource(R.drawable.ic_layout_2);
                 break;
             case 3:
                 recyclerView.setLayoutManager(new GridLayoutManager(getContext(), 3));
-                btnLayout.setImageResource(R.drawable.ic_layout_3); // Icon cho layout 3
+                btnLayout.setImageResource(R.drawable.ic_layout_3);
                 break;
         }
     }
