@@ -8,7 +8,7 @@ android {
 
     defaultConfig {
         applicationId = "com.example.photo_gallery_app"
-        minSdk = 29
+        minSdk = 30
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"

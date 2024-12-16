@@ -331,10 +331,6 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         }
     }
 
-
-
-
-
     // Thêm ảnh đã xóa vào bảng photo_deleted
     private void addDeletedPhoto(String filePath, String deleteDate) {
         SQLiteDatabase db = this.getWritableDatabase();
@@ -480,19 +476,13 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         return filePath;
     }
 
-
-
     // Xóa tất cả ảnh
     public void deleteAllPhotos() {
         SQLiteDatabase db = this.getWritableDatabase();
-
         db.delete(TABLE_PHOTO_IN_ALBUM, null, null);
-
         db.delete(TABLE_ALBUM, null, null);
-
         db.delete(TABLE_PHOTOS, null, null);
         db.close();
     }
-
 }
 

@@ -3,6 +3,7 @@ package com.example.photo_gallery_app;
 import android.annotation.SuppressLint;
 import android.os.Bundle;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -12,8 +13,12 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.Toast;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class HomeFragment extends Fragment {
     public RecyclerView recyclerView;
@@ -22,6 +27,8 @@ public class HomeFragment extends Fragment {
     private LinearLayoutManager linearLayoutManager;
     private GridLayoutManager gridLayoutManager2;
     private GridLayoutManager gridLayoutManager3;
+    private ImageAdapter adapter;
+    private DatabaseHandler databaseHandler;
 
     @SuppressLint("MissingInflatedId")
     @Override
@@ -39,6 +46,8 @@ public class HomeFragment extends Fragment {
 //        gridLayoutManager2.setInitialPrefetchItemCount(6);
 //        gridLayoutManager3.setInitialPrefetchItemCount(9);
 
+        adapter = new ImageAdapter(getContext(), new ArrayList<>()); // Giả sử danh sách trống ban đầu
+        recyclerView.setAdapter(adapter);
 
         // Tìm nút chuyển đổi layout
         btnLayout = view.findViewById(R.id.btn_change_layout);

@@ -1,5 +1,6 @@
 package com.example.photo_gallery_app;
 
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.BitmapFactory;
@@ -44,22 +45,17 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHol
     public ImageViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         LayoutInflater inflater = LayoutInflater.from(context);
         View view = inflater.inflate(R.layout.image_show, parent, false);
-//        Toast.makeText(context, "Đã thêm ảnh thủ công", Toast.LENGTH_SHORT).show();
         return new ImageViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(@NonNull ImageViewHolder holder, int position) {
         String imagePath = ds.get(position);
-//        Toast.makeText(context, "Đã thêm " + imagePath, Toast.LENGTH_SHORT).show();
-
-        //holder.imvThem.setImageURI(Uri.parse(imagePath));  // Nếu là URI
-        //holder.imvThem.setImageBitmap(BitmapFactory.decodeFile(imagePath)); // Nếu là đường dẫn file
 
         Glide.with(context)
                 .load(Uri.parse(imagePath))
-                .error(R.drawable.error_image)       // Ảnh lỗi nếu tải không thành công
-                .into(holder.imvThem);              // Đưa ảnh vào ImageView
+                .error(R.drawable.error_image)
+                .into(holder.imvThem);
 
         if (isSelectionMode) {
             holder.checkbox.setVisibility(View.VISIBLE);
@@ -84,15 +80,6 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHol
             }
         });
 
-        // Lắng nghe sự kiện checkbox
-//        holder.checkbox.setOnCheckedChangeListener((buttonView, isChecked) -> {
-//            if (onItemSelectedListener != null) {
-//                DatabaseHandler db = new DatabaseHandler(context);
-//                int imageId = db.getImageIdFromPath(imagePath);
-//                onItemSelectedListener.onItemSelected(String.valueOf(imageId), isChecked);
-//            }
-//        });
-
         holder.checkbox.setOnCheckedChangeListener((buttonView, isChecked) -> {
             if (isChecked) {
                 if (!selectedImages.contains(imagePath)) {
@@ -109,11 +96,6 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHol
         });
 
     }
-
-//    public void enableSelection(boolean isEnabled) {
-//        isSelectionMode = isEnabled;
-//        notifyDataSetChanged();
-//    }
 
     public void enableSelection(boolean isEnabled) {
         isSelectionMode = isEnabled;
@@ -149,11 +131,11 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHol
         void onItemSelected(String string, boolean isSelected);
     }
 
-    public List<String> getSelectedImages() {
-        return selectedImages;
-    }
-
     public void clearSelectedImages() {
         selectedImages.clear();
+    }
+
+    public List<String> getSelectedImages() {
+        return selectedImages;
     }
 }
