@@ -8,6 +8,7 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -58,6 +59,10 @@ public class HomeFragment extends Fragment {
         currentLayout++; // Tăng kiểu layout
         if (currentLayout > 3) currentLayout = 1;
 
+        setImageLayout();
+    }
+
+    public void setImageLayout() {
         switch (currentLayout) {
             case 1:
                 recyclerView.setLayoutManager(linearLayoutManager);

@@ -117,6 +117,29 @@ public class MainActivity extends AppCompatActivity implements MainCallbacks{
             } else if (currentFragment instanceof FavoriteFragment) {
                 ((FavoriteFragment) currentFragment).enableSelectionMode(false);
             }
+            else if (currentFragment instanceof AlbumFragment) {
+                //((AlbumFragment) currentFragment).enableSelectionMode(false);
+                albumFragment.handlerSelect();
+            }
+
+            // Khôi phục thanh điều hướng và FAB
+            binding.bottomNavigationView.inflateMenu(R.menu.bottom_menu);
+            binding.bottomAppBar.setVisibility(View.VISIBLE);
+            binding.camera.setVisibility(View.VISIBLE);
+            binding.selectedBottom.setVisibility(View.GONE);
+        });
+
+        ImageButton btnErase = findViewById(R.id.btnDelete);
+        btnErase.setOnClickListener(v -> {
+            Fragment currentFragment = getSupportFragmentManager().findFragmentById(R.id.frame_layout);
+            if (currentFragment instanceof HomeFragment) {
+                //((HomeFragment) currentFragment).enableSelectionMode(false);
+            } else if (currentFragment instanceof FavoriteFragment) {
+                //((FavoriteFragment) currentFragment).enableSelectionMode(false);
+            }
+            else if (currentFragment instanceof AlbumFragment) {
+                albumFragment.deleteSelectedAlbums();
+            }
 
             // Khôi phục thanh điều hướng và FAB
             binding.bottomNavigationView.inflateMenu(R.menu.bottom_menu);
@@ -128,11 +151,19 @@ public class MainActivity extends AppCompatActivity implements MainCallbacks{
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == R.id.search){
+            Intent intent = new Intent(this, SearchActivity.class);
+            this.startActivity(intent);
+        }
         if (item.getItemId() == R.id.select) {
             // Kiểm tra xem fragment hiện tại có phải là AlbumFragment không
             if (getSupportFragmentManager().findFragmentById(R.id.frame_layout) instanceof AlbumFragment) {
                 albumFragment.handlerSelect();
             }
+//            if (getSupportFragmentManager().findFragmentById(R.id.frame_layout) instanceof HomeFragment) {
+//                albumFragment.enableSelectionMode(true);
+//                Toast.makeText(this, "Chế độ chọn ảnh được bật", Toast.LENGTH_SHORT).show();
+//            }
             if (getSupportFragmentManager().findFragmentById(R.id.frame_layout) instanceof HomeFragment) {
                 HomeFragment homeFragment = (HomeFragment) getSupportFragmentManager().findFragmentById(R.id.frame_layout);
                 homeFragment.enableSelectionMode(true);
@@ -263,7 +294,23 @@ public class MainActivity extends AppCompatActivity implements MainCallbacks{
     @Override
     protected void onRestart() {
         super.onRestart();
-        Load();
+        //Load();
+        if (getSupportFragmentManager().findFragmentById(R.id.frame_layout) instanceof AlbumFragment) {
+            albumFragment.setLayout();
+        }
+        if (getSupportFragmentManager().findFragmentById(R.id.frame_layout) instanceof HomeFragment) {
+            homeFragment.setImageLayout();
+        }
+        if (getSupportFragmentManager().findFragmentById(R.id.frame_layout) instanceof FavoriteFragment) {
+            favorFragment.setImageLayout();
+        }
+
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        loadImageFromDevice.loadImagesFromDevice((this));
     }
 
     @Override

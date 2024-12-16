@@ -9,6 +9,7 @@ import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.cardview.widget.CardView;
@@ -23,6 +24,7 @@ public class AlbumAdapter extends RecyclerView.Adapter<AlbumAdapter.AlbumViewHol
     private OnItemClickListener onItemClickListener;
     private boolean isSelectionMode = false;
     private OnItemSelectedListener onItemSelectedListener;
+    DatabaseHandler databaseHandler;
 
 
     // Khởi tạo Adapter với OnItemClickListener
@@ -31,6 +33,7 @@ public class AlbumAdapter extends RecyclerView.Adapter<AlbumAdapter.AlbumViewHol
         this.albumList = albumList;
         this.onItemClickListener = listener;
         this.isSelectionMode = false;
+        this.databaseHandler = new DatabaseHandler(context);
     }
 
     // Thiết lập listener cho AlbumFragment
@@ -51,33 +54,13 @@ public class AlbumAdapter extends RecyclerView.Adapter<AlbumAdapter.AlbumViewHol
         holder.tvAlbumName.setText(album.getName());
         holder.tvPhotoCount.setText(album.getPhotoCount() + " photos");
 
-        DatabaseHandler databaseHandler = new DatabaseHandler(context);
+        //Toast.makeText(context, album.getFirstPhotoPath(), Toast.LENGTH_SHORT).show();
 
-        List<String> photoPaths = databaseHandler.getPhotosByAlbumId(album.getId());
-        List<String> allPhotoPaths = databaseHandler.getAllPhotoPaths();
-        List<String> allPhotoPathsFavor = databaseHandler.getFavoritePhotoPaths();
-
-        if (!photoPaths.isEmpty()) {
-            // Hiển thị ảnh đầu tiên trong album
-            String firstPhotoPath = photoPaths.get(0); // Đường dẫn ảnh đầu tiên
-            Uri photoUri = Uri.parse(firstPhotoPath); // Chuyển đổi đường dẫn thành URI
-
-            holder.imgThumbnail.setImageURI(photoUri); // Hiển thị ảnh bằng URI
-        } else if (!allPhotoPaths.isEmpty() || !allPhotoPathsFavor.isEmpty()) {
-            String firstPhotoPath = "";
-            // Hiển thị ảnh đầu tiên trong album
-            if (!allPhotoPathsFavor.isEmpty()){
-                firstPhotoPath = allPhotoPathsFavor.get(0);
-            }
-            if (!allPhotoPaths.isEmpty() && album.getName().equals("All Photos")){
-                firstPhotoPath = allPhotoPaths.get(0);
-            }
-             // Đường dẫn ảnh đầu tiên
-            Uri photoUri = Uri.parse(firstPhotoPath); // Chuyển đổi đường dẫn thành URI
-
-            holder.imgThumbnail.setImageURI(photoUri); // Hiển thị ảnh bằng URI
+        if (album.getFirstPhotoPath() != null && !album.getFirstPhotoPath().isEmpty()){
+            Uri photoUri = Uri.parse(album.getFirstPhotoPath()); // Chuyển đổi đường dẫn thành URI
+            holder.imgThumbnail.setImageURI(photoUri);
         }
-        else {
+        else{
             // Nếu không có ảnh, hiển thị ảnh placeholder
             holder.imgThumbnail.setImageResource(R.drawable.ic_default_album);
         }

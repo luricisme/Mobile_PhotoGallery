@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.graphics.Color;
 import android.os.Bundle;
 
 import androidx.appcompat.app.AlertDialog;
@@ -63,9 +64,9 @@ public class AlbumFragment extends Fragment {
 
         // Initialize album list and adapter
         albumList = new ArrayList<>();
-        albumList.add(new Album(-1, "All Photos", databaseHandler.getTotalPhoto())); // "All Photos" album
-        albumList.add(new Album(-2, "Favorites", databaseHandler.getTotalFavoritedPhotos()));
-        albumList.addAll(databaseHandler.getAllAlbums()); // Fetch all albums from SQLite
+        albumList.add(new Album(-1, "All Photos", databaseHandler.getTotalPhoto(), databaseHandler.getFirstPhotoPath())); // "All Photos" album
+        albumList.add(new Album(-2, "Favorites", databaseHandler.getTotalFavoritedPhotos(), databaseHandler.getFirstFavoritePhotoPath()));
+        albumList.addAll(databaseHandler.getAllAlbumsWithFirstPhoto()); // Fetch all albums from SQLite
 
         // Setup AlbumAdapter with listener for item clicks
         albumAdapter = new AlbumAdapter(getContext(), albumList, new AlbumAdapter.OnItemClickListener() {
@@ -124,7 +125,8 @@ public class AlbumFragment extends Fragment {
     }
 
     // Enable selection mode
-    private void enableSelectionMode(boolean isEnabled) {
+    public void enableSelectionMode(boolean isEnabled) {
+        isSelect = isEnabled;
         if (isEnabled) {
             // Show checkboxes in RecyclerView
             if (isViewingPhotos) {
@@ -139,9 +141,56 @@ public class AlbumFragment extends Fragment {
             } else {
                 albumAdapter.enableSelection(false);
             }
-            selectedItems.clear();
         }
     }
+
+    // Hàm xóa album
+    public void deleteSelectedAlbums() {
+        if (selectedItems.isEmpty()) {
+            Toast.makeText(requireContext(), "No album selected", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Tạo AlertDialog để xác nhận xóa
+        AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
+        builder.setTitle("Delete Albums")
+                .setMessage("Are you sure you want to delete the selected albums?")
+                .setPositiveButton("Yes", (dialog, which) -> {
+                    // Xử lý xóa album
+                    for (String albumName : selectedItems) {
+                        // Lấy album ID từ tên
+                        int albumId = getAlbumIdByName(albumName);
+                        if (albumId != -1) {
+                            databaseHandler.deleteAlbum(albumId); // Xóa khỏi database
+                        }
+
+                        // Xóa khỏi danh sách hiển thị
+                        for (int i = 0; i < albumList.size(); i++) {
+                            if (albumList.get(i).getName().equals(albumName)) {
+                                albumList.remove(i);
+                                break;
+                            }
+                        }
+                    }
+
+                    // Làm mới RecyclerView
+                    albumAdapter.notifyDataSetChanged();
+
+                    // Dọn danh sách đã chọn
+                    selectedItems.clear();
+                    Toast.makeText(requireContext(), "Albums deleted successfully!", Toast.LENGTH_SHORT).show();
+                })
+                .setNegativeButton("No",(dialog, which) -> {
+                    handlerSelect();
+                });
+
+        // Hiển thị AlertDialog
+        AlertDialog alertDialog = builder.create();
+        alertDialog.show();
+        alertDialog.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(Color.RED); // Màu nút "Yes"
+        alertDialog.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(Color.BLUE);
+    }
+
 
 
     private void showAlbumList() {
@@ -172,9 +221,7 @@ public class AlbumFragment extends Fragment {
         btnBack.setVisibility(View.VISIBLE);
         btnLayout.setVisibility(View.VISIBLE);
 
-        // Handle viewing photos in album (e.g., load and display images in RecyclerView)
-
-        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+        recyclerView.setAdapter(null);
 
         if (mainActivity != null) {
             mainActivity.LoadImgInAlbum();
@@ -187,9 +234,7 @@ public class AlbumFragment extends Fragment {
         btnBack.setVisibility(View.VISIBLE);
         btnLayout.setVisibility(View.VISIBLE);
 
-        // Handle viewing photos in album (e.g., load and display images in RecyclerView)
-
-        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+        recyclerView.setAdapter(null);
 
         if (mainActivity != null) {
             mainActivity.LoadImgInAlbumAsFavor();
@@ -204,8 +249,7 @@ public class AlbumFragment extends Fragment {
         btnBack.setVisibility(View.VISIBLE);
         btnLayout.setVisibility(View.VISIBLE);
 
-        // Thiết lập RecyclerView
-        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+        recyclerView.setAdapter(null);
 
         if (mainActivity != null) {
             mainActivity.LoadImgInAlbumID(album.getId());
@@ -290,9 +334,9 @@ public class AlbumFragment extends Fragment {
 
             // Refresh album list and update UI
             albumList.clear();
-            albumList.add(new Album(-1, "All Photos", databaseHandler.getTotalPhoto())); // Keep "All Photos" album at the top
-            albumList.add(new Album(-2, "Favorites", databaseHandler.getTotalFavoritedPhotos()));
-            albumList.addAll(databaseHandler.getAllAlbums());
+            albumList.add(new Album(-1, "All Photos", databaseHandler.getTotalPhoto(), databaseHandler.getFirstPhotoPath())); // "All Photos" album
+            albumList.add(new Album(-2, "Favorites", databaseHandler.getTotalFavoritedPhotos(), databaseHandler.getFirstFavoritePhotoPath()));
+            albumList.addAll(databaseHandler.getAllAlbumsWithFirstPhoto()); // Fetch all albums from SQLite
             albumAdapter.notifyDataSetChanged();
 
             // Notify user
@@ -342,18 +386,28 @@ public class AlbumFragment extends Fragment {
             if (currentLayout > 3) currentLayout = 1; // Quay lại 1 cột nếu vượt quá 3 cột
         }
 
+        setImageLayout();
+    }
+
+    public void setLayout() {
+        if (isViewingPhotos){
+            setImageLayout();
+        }
+    }
+
+    public void setImageLayout() {
         switch (currentLayout) {
             case 1:
                 recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-                btnLayout.setImageResource(R.drawable.ic_layout_1); // Icon cho layout 1
+                btnLayout.setImageResource(R.drawable.ic_layout_1);
                 break;
             case 2:
                 recyclerView.setLayoutManager(new GridLayoutManager(getContext(), 2));
-                btnLayout.setImageResource(R.drawable.ic_layout_2); // Icon cho layout 2
+                btnLayout.setImageResource(R.drawable.ic_layout_2);
                 break;
             case 3:
                 recyclerView.setLayoutManager(new GridLayoutManager(getContext(), 3));
-                btnLayout.setImageResource(R.drawable.ic_layout_3); // Icon cho layout 3
+                btnLayout.setImageResource(R.drawable.ic_layout_3);
                 break;
         }
     }
