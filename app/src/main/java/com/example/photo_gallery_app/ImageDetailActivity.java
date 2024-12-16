@@ -12,12 +12,14 @@
     import android.view.Menu;
     import android.view.MenuItem;
     import android.view.View;
+    import android.widget.Button;
     import android.widget.ImageButton;
     import android.widget.ImageView;
     import android.widget.TextView;
     import android.widget.Toast;
 
     import androidx.annotation.NonNull;
+    import androidx.appcompat.app.AlertDialog;
     import androidx.appcompat.app.AppCompatActivity;
     import androidx.appcompat.widget.Toolbar;
     import androidx.localbroadcastmanager.content.LocalBroadcastManager;
@@ -176,75 +178,65 @@
             btnDelete = findViewById(R.id.btnDelete);
             btnDelete.setOnClickListener(v -> {
                 if (imageUri != null) {
-                    try {
-                        // Also delete the image from the database
-                        //DatabaseHandler dbHandler = new DatabaseHandler(this);
-                        String imagePath2 = getRealPathFromURI(imageUri); // Get the actual file path from the URI
-                        int imageId = databaseHandler.getImageIdFromPath(imageUri.toString());
-                        //Toast.makeText(this, "joo" + imageId, Toast.LENGTH_SHORT).show();
-                        // Try deleting the image from the MediaStore
-                        ContentResolver contentResolver = getContentResolver();
-                        int rowsDeleted = contentResolver.delete(imageUri, null, null);
+                    // Tạo AlertDialog xác nhận trước khi xóa
+                    AlertDialog.Builder builder = new AlertDialog.Builder(this)
+                            .setTitle("Xác nhận xóa")
+                            .setMessage("Bạn có chắc chắn muốn xóa ảnh này không?")
+                            .setPositiveButton("Có", (dialog, which) -> {
+                                try {
+                                    int imageId = databaseHandler.getImageIdFromPath(imageUri.toString());
+                                    // Xóa ảnh khỏi bộ nhớ
+                                    ContentResolver contentResolver = getContentResolver();
+                                    int rowsDeleted = contentResolver.delete(imageUri, null, null); // Trả về số lượng hàng đã bị xóa
 
-                        if (rowsDeleted > 0) {
-                            //Toast.makeText(this, "Image deleted successfully", Toast.LENGTH_SHORT).show();
-                            //Toast.makeText(this, imageUri.toString(), Toast.LENGTH_SHORT).show();
+                                    if (rowsDeleted > 0) {
+                                        if (imageId != -1) {
+                                            databaseHandler.deletePhoto(imageId);
+                                        }
 
+                                        // Thông báo với các thành phần khác rằng ảnh đã bị xóa
+                                        Intent resultIntent = new Intent("ACTION_LOAD");
+                                        LocalBroadcastManager.getInstance(ImageDetailActivity.this).sendBroadcast(resultIntent);
+                                        finish();
+                                    } else {
+                                        Toast.makeText(this, "Failed to delete image", Toast.LENGTH_SHORT).show();
+                                    }
+                                } catch (RecoverableSecurityException e) {
+                                    IntentSender intentSender = e.getUserAction().getActionIntent().getIntentSender();
+                                    try {
+                                        startIntentSenderForResult(intentSender, REQUEST_CODE_PERMISSION, null, 0, 0, 0, null);
+                                    } catch (IntentSender.SendIntentException ex) {
+                                        ex.printStackTrace();
+                                        Toast.makeText(this, "Error requesting permission: " + ex.getMessage(), Toast.LENGTH_SHORT).show();
+                                    }
+                                } catch (SecurityException e) {
+                                    Toast.makeText(this, "Permission denied: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                                } catch (Exception e) {
+                                    // General exception handling
+                                    e.printStackTrace();
+                                    Toast.makeText(this, "Error deleting image: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                                }
+                            })
+                            .setNegativeButton("Hủy", (dialog, which) -> {
+                                dialog.dismiss();
+                            });
 
+                    // Lấy ra đối tượng AlertDialog
+                    AlertDialog dialog = builder.create();
 
-                            if (imageId != -1) {
-                                //Toast.makeText(this, "joo00000 " + imageId, Toast.LENGTH_SHORT).show();
-                                databaseHandler.deletePhoto(imageId);
-                                //databaseHandler.deleteAllPhotos();
-                                // Delete from database if image ID is found
-                            }
+                    // Thay đổi màu chữ của các nút trong AlertDialog
+                    dialog.setOnShowListener(d -> {
+                        Button positiveButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
+                        Button negativeButton = dialog.getButton(AlertDialog.BUTTON_NEGATIVE);
+                        positiveButton.setTextColor(getResources().getColor(R.color.black));  // Thay đổi màu nút "Có"
+                        negativeButton.setTextColor(getResources().getColor(R.color.black));   // Thay đổi màu nút "Hủy"
+                    });
 
-                            // Return to the previous activity with a result indicating the image was deleted
-//                            Intent resultIntent = new Intent();
-//                            resultIntent.putExtra("imageDeleted", true);  // Truyền thông tin (ví dụ: ảnh đã bị xóa)
-//                            setResult(RESULT_OK, resultIntent);
-//                            finish();
-                            Intent resultIntent = new Intent("ACTION_LOAD");
-                            LocalBroadcastManager.getInstance(ImageDetailActivity.this).sendBroadcast(resultIntent);
-
-                            finish();
-                        } else {
-                            Toast.makeText(this, "Failed to delete image", Toast.LENGTH_SHORT).show();
-                        }
-                    } catch (RecoverableSecurityException e) {
-                        // If the app doesn't have permission, prompt the user to grant the required permission
-                        IntentSender intentSender = e.getUserAction().getActionIntent().getIntentSender();
-                        try {
-                            startIntentSenderForResult(intentSender, REQUEST_CODE_PERMISSION, null, 0, 0, 0, null);
-                        } catch (IntentSender.SendIntentException ex) {
-                            ex.printStackTrace();
-                            Toast.makeText(this, "Error requesting permission: " + ex.getMessage(), Toast.LENGTH_SHORT).show();
-                        }
-                    } catch (SecurityException e) {
-                        // If the app doesn't have permission, show an error message
-                        Toast.makeText(this, "Permission denied: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                    } catch (Exception e) {
-                        // General exception handling
-                        e.printStackTrace();
-                        Toast.makeText(this, "Error deleting image: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                    }
+                    dialog.show();
                 } else {
                     Toast.makeText(this, "Image URI not found", Toast.LENGTH_SHORT).show();
                 }
             });
-        }
-
-        private String getRealPathFromURI(Uri contentUri) {
-            String[] proj = {MediaStore.Images.Media.DATA};
-            Cursor cursor = getContentResolver().query(contentUri, proj, null, null, null);
-            if (cursor != null) {
-                int column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
-                cursor.moveToFirst();
-                String path = cursor.getString(column_index);
-                cursor.close();
-                return path;
-            }
-            return null;
         }
 
         // Hàm cập nhật giao diện icon
@@ -268,7 +260,6 @@
                 // Xử lý sự kiện "Hide"
                 return true;
             } else if (item.getItemId() == R.id.info) {
-                // Xử lý sự kiện "Information"
                 String[] projection = {
                         MediaStore.Images.Media._ID,
                         MediaStore.Images.Media.DISPLAY_NAME,

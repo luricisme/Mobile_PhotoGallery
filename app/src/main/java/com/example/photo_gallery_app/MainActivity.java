@@ -1,21 +1,29 @@
 package com.example.photo_gallery_app;
 
 import android.Manifest;
+import android.content.ActivityNotFoundException;
 import android.content.BroadcastReceiver;
+import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.provider.MediaStore;
+import android.provider.Settings;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.Toast;
+import android.widget.Button;
+
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -24,6 +32,7 @@ import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.appcompat.widget.Toolbar;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.photo_gallery_app.databinding.ActivityMainBinding;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -45,18 +54,40 @@ public class MainActivity extends AppCompatActivity implements MainCallbacks{
     private static final AlbumFragment albumFragment = new AlbumFragment();
     private static final FavoriteFragment favorFragment = new FavoriteFragment();
 
+    private static final int REQUEST_CODE_STORAGE_PERMISSION = 100;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-//            getWindow().setNavigationBarColor(ContextCompat.getColor(this, R.color.green));
-//        }
-
         super.onCreate(savedInstanceState);
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
+        // Xin phép lúc dầu để có toàn quyền
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            // Kiểm tra xem quyền đã được cấp hay chưa
+            if (!Environment.isExternalStorageManager()) {
+                try {
+                    Intent intent = new Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION);
+                    intent.setData(Uri.parse("package:" + getPackageName()));
+                    startActivityForResult(intent, REQUEST_CODE_STORAGE_PERMISSION);
+                } catch (ActivityNotFoundException e) {
+                    e.printStackTrace();
+                    Toast.makeText(this, "Unable to request permission", Toast.LENGTH_SHORT).show();
+                }
+            } else {
+                // Toast.makeText(this, "Permission already granted", Toast.LENGTH_SHORT).show();
+            }
+        } else {
+            // Với Android 10 trở xuống, xin quyền truy cập bộ nhớ ngoài
+            ActivityCompat.requestPermissions(
+                    this,
+                    new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                    REQUEST_CODE_STORAGE_PERMISSION
+            );
+        }
 
         // Mặc định ban đầu là HomeFragment
         replaceFragment(homeFragment, "Home");
@@ -134,11 +165,15 @@ public class MainActivity extends AppCompatActivity implements MainCallbacks{
             Fragment currentFragment = getSupportFragmentManager().findFragmentById(R.id.frame_layout);
             if (currentFragment instanceof HomeFragment) {
                 //((HomeFragment) currentFragment).enableSelectionMode(false);
+                HomeFragment homeFragment = (HomeFragment) currentFragment;
+                handleImageDeletion(homeFragment.recyclerView, this);
             } else if (currentFragment instanceof FavoriteFragment) {
-                //((FavoriteFragment) currentFragment).enableSelectionMode(false);
+                FavoriteFragment favoriteFragment = (FavoriteFragment) currentFragment;
+                handleImageDeletion(favoriteFragment.recyclerView, this);
             }
             else if (currentFragment instanceof AlbumFragment) {
-                albumFragment.deleteSelectedAlbums();
+                AlbumFragment albumFragment = (AlbumFragment) currentFragment;
+                handleImageDeletion(albumFragment.recyclerView, this);
             }
 
             // Khôi phục thanh điều hướng và FAB
@@ -149,6 +184,70 @@ public class MainActivity extends AppCompatActivity implements MainCallbacks{
         });
     }
 
+    private void handleImageDeletion(RecyclerView recyclerView, Context context) {
+        RecyclerView.Adapter<?> adapter = recyclerView.getAdapter();
+        if (adapter instanceof ImageAdapter) {
+            ImageAdapter imageAdapter = (ImageAdapter) adapter;
+            List<String> selectedImages = imageAdapter.getSelectedImages();
+
+            if (selectedImages.isEmpty()) {
+                Toast.makeText(context, "Không có ảnh nào được chọn để xóa", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            // Tạo AlertDialog xác nhận
+            AlertDialog.Builder builder = new AlertDialog.Builder(context)
+                    .setTitle("Xác nhận xóa")
+                    .setMessage("Bạn có chắc chắn muốn xóa các ảnh đã chọn không?")
+                    .setPositiveButton("Có", (dialog, which) -> {
+                        try {
+                            ContentResolver contentResolver = context.getContentResolver();
+                            DatabaseHandler db = new DatabaseHandler(context);
+
+                            // Lặp qua từng ảnh và xóa
+                            for (String imagePath : selectedImages) {
+                                Uri imageUri = Uri.parse(imagePath);
+                                int rowsDeleted = contentResolver.delete(imageUri, null, null);
+
+                                if (rowsDeleted > 0) {
+                                    int imageId = db.getImageIdFromPath(imagePath);
+                                    if (imageId != -1) {
+                                        db.deletePhoto(imageId);
+                                    }
+                                } else {
+                                    Toast.makeText(context, "Không thể xóa ảnh: " + imagePath, Toast.LENGTH_SHORT).show();
+                                }
+                            }
+
+                            // Cập nhật RecyclerView
+                            List<String> allImages = db.getAllPhotoPaths();
+                            imageAdapter.setDs(context, allImages);
+                            imageAdapter.clearSelectedImages();
+                            imageAdapter.notifyDataSetChanged();
+
+                            Toast.makeText(context, "Đã xóa các ảnh đã chọn", Toast.LENGTH_SHORT).show();
+                        } catch (SecurityException e) {
+                            Toast.makeText(context, "Permission denied: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                            Toast.makeText(context, "Lỗi khi xóa ảnh: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                        }
+                    })
+                    .setNegativeButton("Hủy", (dialog, which) -> dialog.dismiss());
+
+            // Tùy chỉnh màu chữ trong AlertDialog
+            AlertDialog dialog = builder.create();
+            dialog.setOnShowListener(d -> {
+                Button positiveButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
+                Button negativeButton = dialog.getButton(AlertDialog.BUTTON_NEGATIVE);
+                positiveButton.setTextColor(context.getResources().getColor(R.color.black));
+                negativeButton.setTextColor(context.getResources().getColor(R.color.black));
+            });
+
+            dialog.show();
+        }
+    }
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == R.id.search){
@@ -156,14 +255,10 @@ public class MainActivity extends AppCompatActivity implements MainCallbacks{
             this.startActivity(intent);
         }
         if (item.getItemId() == R.id.select) {
-            // Kiểm tra xem fragment hiện tại có phải là AlbumFragment không
             if (getSupportFragmentManager().findFragmentById(R.id.frame_layout) instanceof AlbumFragment) {
                 albumFragment.handlerSelect();
             }
-//            if (getSupportFragmentManager().findFragmentById(R.id.frame_layout) instanceof HomeFragment) {
-//                albumFragment.enableSelectionMode(true);
-//                Toast.makeText(this, "Chế độ chọn ảnh được bật", Toast.LENGTH_SHORT).show();
-//            }
+
             if (getSupportFragmentManager().findFragmentById(R.id.frame_layout) instanceof HomeFragment) {
                 HomeFragment homeFragment = (HomeFragment) getSupportFragmentManager().findFragmentById(R.id.frame_layout);
                 homeFragment.enableSelectionMode(true);
@@ -205,9 +300,9 @@ public class MainActivity extends AppCompatActivity implements MainCallbacks{
         if (requestCode == 999) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 // Đã cấp quyền, tiếp tục thực hiện hành động
-                Toast.makeText(this, "Quyền thông qua", Toast.LENGTH_SHORT).show();
+                //Toast.makeText(this, "Quyền thông qua", Toast.LENGTH_SHORT).show();
             } else {
-                Toast.makeText(this, "Quyền bị từ chối", Toast.LENGTH_SHORT).show();
+                //Toast.makeText(this, "Quyền bị từ chối", Toast.LENGTH_SHORT).show();
             }
         }
 
@@ -316,32 +411,9 @@ public class MainActivity extends AppCompatActivity implements MainCallbacks{
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        // Hủy đăng ký BroadcastReceiver trong onDestroy
         LocalBroadcastManager.getInstance(this).unregisterReceiver(receiver);
     }
-    // Lắng nghe tín hiệu yêu cầu gọi load
 
-//    // Xử lý kết quả chụp hình
-//    @Override
-//    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-//        super.onActivityResult(requestCode, resultCode, data);
-//
-//        if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
-//            // Sau khi chụp hình, ảnh sẽ được lưu vào album
-//            if (imageUri != null) {
-//                Load();
-//                Toast.makeText(MainActivity.this, "Hình ảnh đã được lưu vào album", Toast.LENGTH_SHORT).show();
-//            } else {
-//                Toast.makeText(MainActivity.this, "Có lỗi khi lưu hình ảnh", Toast.LENGTH_SHORT).show();
-//            }
-//        } else {
-//            if (imageUri != null) {
-//                getContentResolver().delete(imageUri, null, null);
-//                imageUri = null;
-//            }
-//            Toast.makeText(MainActivity.this, "Chụp hình không thành công", Toast.LENGTH_SHORT).show();
-//        }
-//    }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -368,6 +440,16 @@ public class MainActivity extends AppCompatActivity implements MainCallbacks{
                 if (imageDeleted) {
                     Load(); // Gọi hàm để tải lại danh sách ảnh
                     Toast.makeText(this, "Image deleted success", Toast.LENGTH_SHORT).show();
+                }
+            }
+        }
+
+        if (requestCode == REQUEST_CODE_STORAGE_PERMISSION) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                if (Environment.isExternalStorageManager()) {
+                    Toast.makeText(this, "Permission granted", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(this, "Permission denied", Toast.LENGTH_SHORT).show();
                 }
             }
         }
