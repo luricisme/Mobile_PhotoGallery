@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- Thanh công cụ phía trên -->
+    <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/appBarLayoutDetail"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/white">
+
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbarDetail"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="@color/white"
+            app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
+            app:titleTextAppearance="@style/CustomToolbarTitle"/>
+    </com.google.android.material.appbar.AppBarLayout>
+
+
+
+    <!-- recyclerview để hiển thị ảnh tìm kiếm -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="58dp"
+        android:layout_marginBottom="60dp"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="7dp"
+            android:gravity="center_vertical"
+            android:background="@drawable/search_border"> <!-- Tạo background cho khung -->
+
+            <!-- EditText chiếm phần còn lại -->
+            <EditText
+                android:id="@+id/textEdit"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:hint="Tìm kiếm..."
+                android:padding="10dp"
+                android:textColor="#000000"
+                android:background="@android:color/white"
+                android:imeOptions="actionSearch"
+                android:singleLine="true"/>
+
+            <!-- Button với biểu tượng tìm kiếm -->
+            <ImageButton
+                android:id="@+id/btnSearch"
+                android:layout_width="50dp"
+                android:layout_marginLeft="5dp"
+                android:layout_height="50dp"
+                android:background="@drawable/ic_search_thick"/>
+        </LinearLayout>
+
+        <ImageButton
+            android:id="@+id/btn_change_layout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end"
+            android:background="@color/white"
+            android:layout_marginRight="2dp"
+            android:layout_marginBottom="1dp"
+            android:src="@drawable/ic_layout_1" />
+
+
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+        </androidx.recyclerview.widget.RecyclerView>
+
+        <TextView
+            android:id="@+id/textView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="24dp"
+            android:textColor="@color/black"
+            android:layout_marginLeft="5dp"
+            android:text="" />
+
+
+    </LinearLayout>
+
+
+
+
+<!--    <LinearLayout-->
+<!--        android:id="@+id/bottomTool"-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:background="@color/white"-->
+<!--        android:orientation="horizontal"-->
+<!--        android:padding="8dp"-->
+<!--        android:gravity="center"-->
+<!--        android:layout_alignParentBottom="true">-->
+
+<!--        <ImageButton-->
+<!--            android:id="@+id/btnEdit"-->
+<!--            android:contentDescription="Edit"-->
+<!--            android:layout_width="48dp"-->
+<!--            android:layout_height="48dp"-->
+<!--            android:layout_weight="1"-->
+<!--            app:srcCompat="@drawable/ic_edit"-->
+<!--            android:background="@null"/>-->
+
+<!--        <ImageButton-->
+<!--            android:id="@+id/btnFavorite"-->
+<!--            android:contentDescription="Favorite"-->
+<!--            android:layout_width="48dp"-->
+<!--            android:layout_height="48dp"-->
+<!--            android:layout_weight="1"-->
+<!--            app:srcCompat="@drawable/ic_favorite_thick"-->
+<!--            android:background="@null"/>-->
+
+<!--        <ImageButton-->
+<!--            android:id="@+id/btnDelete"-->
+<!--            android:contentDescription="Delete"-->
+<!--            android:layout_width="48dp"-->
+<!--            android:layout_height="48dp"-->
+<!--            android:layout_weight="1"-->
+<!--            app:srcCompat="@drawable/ic_delete"-->
+<!--            android:background="@null"/>-->
+
+<!--        <ImageButton-->
+<!--            android:id="@+id/btnShare"-->
+<!--            android:contentDescription="Share"-->
+<!--            android:layout_width="48dp"-->
+<!--            android:layout_height="48dp"-->
+<!--            android:layout_weight="1"-->
+<!--            app:srcCompat="@drawable/ic_share"-->
+<!--            android:background="@null"/>-->
+<!--    </LinearLayout>-->
+
+
+</RelativeLayout>

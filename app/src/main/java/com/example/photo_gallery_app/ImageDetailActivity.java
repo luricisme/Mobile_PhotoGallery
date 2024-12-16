@@ -113,8 +113,8 @@
 
                             if (imageId != -1) {
                                 //Toast.makeText(this, "joo00000 " + imageId, Toast.LENGTH_SHORT).show();
-                                //databaseHandler.deletePhoto(imageId);
-                                databaseHandler.deleteAllPhotos();
+                                databaseHandler.deletePhoto(imageId);
+                                //databaseHandler.deleteAllPhotos();
                                 // Delete from database if image ID is found
                             }
 
