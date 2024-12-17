@@ -131,7 +131,7 @@ public class SearchActivity extends AppCompatActivity {
         } else {
 
             txtView.setText("");
-            Toast.makeText(this, imageItems.get(0), Toast.LENGTH_SHORT).show();
+            //Toast.makeText(this, imageItems.get(0), Toast.LENGTH_SHORT).show();
             // Cập nhật dữ liệu cho RecyclerView
             //imageAdapter.updateData(imageItems);
             recyclerView.setLayoutManager(new LinearLayoutManager(this));
