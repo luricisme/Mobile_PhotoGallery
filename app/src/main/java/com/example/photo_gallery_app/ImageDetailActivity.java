@@ -180,9 +180,9 @@
                 if (imageUri != null) {
                     // Tạo AlertDialog xác nhận trước khi xóa
                     AlertDialog.Builder builder = new AlertDialog.Builder(this)
-                            .setTitle("Xác nhận xóa")
-                            .setMessage("Bạn có chắc chắn muốn xóa ảnh này không?")
-                            .setPositiveButton("Có", (dialog, which) -> {
+                            .setTitle(getString(R.string.dialog_title))
+                            .setMessage(getString(R.string.dialog_message))
+                            .setPositiveButton(getString(R.string.positive_button), (dialog, which) -> {
                                 try {
                                     int imageId = databaseHandler.getImageIdFromPath(imageUri.toString());
                                     // Xóa ảnh khỏi bộ nhớ
@@ -217,7 +217,7 @@
                                     Toast.makeText(this, "Error deleting image: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                                 }
                             })
-                            .setNegativeButton("Hủy", (dialog, which) -> {
+                            .setNegativeButton(getString(R.string.negative_button), (dialog, which) -> {
                                 dialog.dismiss();
                             });
 

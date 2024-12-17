@@ -20,41 +20,47 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textSize="20dp"
-            android:text="Tên ứng dụng: Album ảnh" />
+            android:text="@string/about_appname"
+            android:fontFamily="@font/poppins_regular"/>
 
         <TextView
             android:id="@+id/textView2"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textSize="20dp"
-            android:text="Phiên bản: 1.0" />
+            android:text="@string/about_version"
+            android:fontFamily="@font/poppins_regular"/>
 
         <TextView
             android:id="@+id/textView3"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textSize="20dp"
-            android:text="Android: 10.0" />
+            android:text="@string/about_android"
+            android:fontFamily="@font/poppins_regular"/>
 
         <TextView
             android:id="@+id/textView4"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textSize="20dp"
-            android:text="Nhóm phát triển: Three Group" />
+            android:text="Nhóm phát triển: Three Group"
+            android:fontFamily="@font/poppins_regular"/>
 
         <TextView
             android:id="@+id/textView5"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textSize="20dp"
-            android:text="Bản quyền: Không" />
+            android:text="@string/about_copyright"
+            android:fontFamily="@font/poppins_regular"/>
 
         <TextView
             android:id="@+id/textView6"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textSize="20dp"
-            android:text="Giấy phép: Không" />
+            android:text="@string/about_license"
+            android:fontFamily="@font/poppins_regular"/>
     </LinearLayout>
 </FrameLayout>

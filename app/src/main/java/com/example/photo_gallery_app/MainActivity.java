@@ -8,7 +8,10 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.content.res.Configuration;
+import android.content.res.Resources;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -38,6 +41,7 @@ import com.example.photo_gallery_app.databinding.ActivityMainBinding;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity implements MainCallbacks{
     ActivityMainBinding binding;
@@ -62,6 +66,9 @@ public class MainActivity extends AppCompatActivity implements MainCallbacks{
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
+        // Load ngôn ngữ thông qua hàm này
+        loadLocale();
+
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
@@ -81,7 +88,6 @@ public class MainActivity extends AppCompatActivity implements MainCallbacks{
                 // Toast.makeText(this, "Permission already granted", Toast.LENGTH_SHORT).show();
             }
         } else {
-            // Với Android 10 trở xuống, xin quyền truy cập bộ nhớ ngoài
             ActivityCompat.requestPermissions(
                     this,
                     new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
@@ -89,7 +95,6 @@ public class MainActivity extends AppCompatActivity implements MainCallbacks{
             );
         }
 
-        // Mặc định ban đầu là HomeFragment
         replaceFragment(homeFragment, "Home");
         binding.bottomNavigationView.setBackground(null);
 
@@ -108,19 +113,18 @@ public class MainActivity extends AppCompatActivity implements MainCallbacks{
         binding.bottomNavigationView.setOnItemSelectedListener(item -> {
             int itemId = item.getItemId();
             if(itemId == R.id.home){
-                replaceFragment(homeFragment, "Home");
+                replaceFragment(homeFragment, getString(R.string.bottom_menu_home));
             }
             else if(itemId == R.id.album)
             {
-                replaceFragment(albumFragment, "Album");
+                replaceFragment(albumFragment, getString(R.string.bottom_menu_album));
             }
             else if(itemId == R.id.favorite){
-                replaceFragment(favorFragment, "Favorite");
+                replaceFragment(favorFragment, getString(R.string.bottom_menu_favorite));
             }
             else if(itemId == R.id.more){
-                replaceFragment(new MoreFragment(), "More");
+                replaceFragment(new MoreFragment(), getString(R.string.bottom_menu_more));
             }
-
             return true;
         });
 
@@ -152,12 +156,20 @@ public class MainActivity extends AppCompatActivity implements MainCallbacks{
                 //((AlbumFragment) currentFragment).enableSelectionMode(false);
                 albumFragment.handlerSelect();
             }
-
-            // Khôi phục thanh điều hướng và FAB
             binding.bottomNavigationView.inflateMenu(R.menu.bottom_menu);
             binding.bottomAppBar.setVisibility(View.VISIBLE);
             binding.camera.setVisibility(View.VISIBLE);
             binding.selectedBottom.setVisibility(View.GONE);
+
+            int currentMenuId = R.id.home;
+            if (currentFragment instanceof HomeFragment) {
+                currentMenuId = R.id.home;
+            } else if (currentFragment instanceof AlbumFragment) {
+                currentMenuId = R.id.album;
+            } else if (currentFragment instanceof FavoriteFragment) {
+                currentMenuId = R.id.favorite;
+            }
+            binding.bottomNavigationView.setSelectedItemId(currentMenuId);
         });
 
         ImageButton btnErase = findViewById(R.id.btnDelete);
@@ -172,16 +184,89 @@ public class MainActivity extends AppCompatActivity implements MainCallbacks{
                 handleImageDeletion(favoriteFragment.recyclerView, this);
             }
             else if (currentFragment instanceof AlbumFragment) {
+                ((AlbumFragment) currentFragment).deleteSelectedAlbums();
                 AlbumFragment albumFragment = (AlbumFragment) currentFragment;
                 handleImageDeletion(albumFragment.recyclerView, this);
             }
-
-            // Khôi phục thanh điều hướng và FAB
             binding.bottomNavigationView.inflateMenu(R.menu.bottom_menu);
             binding.bottomAppBar.setVisibility(View.VISIBLE);
             binding.camera.setVisibility(View.VISIBLE);
             binding.selectedBottom.setVisibility(View.GONE);
+
+            int currentMenuId = R.id.home;
+            if (currentFragment instanceof HomeFragment) {
+                currentMenuId = R.id.home;
+            } else if (currentFragment instanceof AlbumFragment) {
+                currentMenuId = R.id.album;
+            } else if (currentFragment instanceof FavoriteFragment) {
+                currentMenuId = R.id.favorite;
+            } else if(currentFragment instanceof MoreFragment){
+                currentMenuId = R.id.more;
+            }
+            binding.bottomNavigationView.setSelectedItemId(currentMenuId);
         });
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == R.id.search){
+            Intent intent = new Intent(this, SearchActivity.class);
+            this.startActivity(intent);
+        }
+        if (item.getItemId() == R.id.select) {
+            if (getSupportFragmentManager().findFragmentById(R.id.frame_layout) instanceof AlbumFragment) {
+                albumFragment.handlerSelect();
+            }
+            if (getSupportFragmentManager().findFragmentById(R.id.frame_layout) instanceof HomeFragment) {
+                HomeFragment homeFragment = (HomeFragment) getSupportFragmentManager().findFragmentById(R.id.frame_layout);
+                homeFragment.enableSelectionMode(true);
+                //Toast.makeText(this, "Chế độ chọn ảnh được bật", Toast.LENGTH_SHORT).show();
+            }
+            if (getSupportFragmentManager().findFragmentById(R.id.frame_layout) instanceof FavoriteFragment) {
+                FavoriteFragment favoriteFragment = (FavoriteFragment) getSupportFragmentManager().findFragmentById(R.id.frame_layout);
+                favoriteFragment.enableSelectionMode(true);
+                //Toast.makeText(this, "Chế độ chọn ảnh được bật", Toast.LENGTH_SHORT).show();
+            }
+            binding.bottomNavigationView.getMenu().clear();
+            binding.bottomAppBar.setVisibility(View.GONE);
+            binding.camera.setVisibility(View.GONE);
+            binding.selectedBottom.setVisibility(View.VISIBLE);
+
+            if (binding.selectedBottom.getVisibility() == View.VISIBLE) {
+                Log.d("DEBUG", "selectedBottom đã được hiển thị.");
+            } else {
+                Log.d("DEBUG", "selectedBottom không được hiển thị.");
+            }
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    public void setLocale(String langCode, boolean recreateActivity) {
+        Locale locale = new Locale(langCode);
+        Locale.setDefault(locale);
+
+        Resources resources = getResources();
+        Configuration config = resources.getConfiguration();
+        config.setLocale(locale);
+
+        getBaseContext().getResources().updateConfiguration(config, getBaseContext().getResources().getDisplayMetrics());
+
+        // Lưu lại ngôn ngữ vào SharedPreferences
+        SharedPreferences.Editor editor = getSharedPreferences("Settings", MODE_PRIVATE).edit();
+        editor.putString("Language", langCode);
+        editor.apply();
+
+        // Reload lại để áp dụng thay đổi ngôn ngữ
+        if (recreateActivity) {
+            recreate();
+        }
+    }
+
+    public void loadLocale() {
+        SharedPreferences prefs = getSharedPreferences("Settings", MODE_PRIVATE);
+        String language = prefs.getString("Language", "en"); // Mặc định là tiếng Anh
+        setLocale(language, false);
     }
 
     private void handleImageDeletion(RecyclerView recyclerView, Context context) {
@@ -195,11 +280,10 @@ public class MainActivity extends AppCompatActivity implements MainCallbacks{
                 return;
             }
 
-            // Tạo AlertDialog xác nhận
             AlertDialog.Builder builder = new AlertDialog.Builder(context)
-                    .setTitle("Xác nhận xóa")
-                    .setMessage("Bạn có chắc chắn muốn xóa các ảnh đã chọn không?")
-                    .setPositiveButton("Có", (dialog, which) -> {
+                    .setTitle(getString(R.string.dialog_title))
+                    .setMessage(getString(R.string.dialog_message))
+                    .setPositiveButton(getString(R.string.positive_button), (dialog, which) -> {
                         try {
                             ContentResolver contentResolver = context.getContentResolver();
                             DatabaseHandler db = new DatabaseHandler(context);
@@ -218,8 +302,6 @@ public class MainActivity extends AppCompatActivity implements MainCallbacks{
                                     Toast.makeText(context, "Không thể xóa ảnh: " + imagePath, Toast.LENGTH_SHORT).show();
                                 }
                             }
-
-                            // Cập nhật RecyclerView
                             List<String> allImages = db.getAllPhotoPaths();
                             imageAdapter.setDs(context, allImages);
                             imageAdapter.clearSelectedImages();
@@ -233,9 +315,8 @@ public class MainActivity extends AppCompatActivity implements MainCallbacks{
                             Toast.makeText(context, "Lỗi khi xóa ảnh: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                         }
                     })
-                    .setNegativeButton("Hủy", (dialog, which) -> dialog.dismiss());
+                    .setNegativeButton(getString(R.string.negative_button), (dialog, which) -> dialog.dismiss());
 
-            // Tùy chỉnh màu chữ trong AlertDialog
             AlertDialog dialog = builder.create();
             dialog.setOnShowListener(d -> {
                 Button positiveButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
@@ -246,45 +327,6 @@ public class MainActivity extends AppCompatActivity implements MainCallbacks{
 
             dialog.show();
         }
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == R.id.search){
-            Intent intent = new Intent(this, SearchActivity.class);
-            this.startActivity(intent);
-        }
-        if (item.getItemId() == R.id.select) {
-            if (getSupportFragmentManager().findFragmentById(R.id.frame_layout) instanceof AlbumFragment) {
-                albumFragment.handlerSelect();
-            }
-
-            if (getSupportFragmentManager().findFragmentById(R.id.frame_layout) instanceof HomeFragment) {
-                HomeFragment homeFragment = (HomeFragment) getSupportFragmentManager().findFragmentById(R.id.frame_layout);
-                homeFragment.enableSelectionMode(true);
-                Toast.makeText(this, "Chế độ chọn ảnh được bật", Toast.LENGTH_SHORT).show();
-            }
-            if (getSupportFragmentManager().findFragmentById(R.id.frame_layout) instanceof FavoriteFragment) {
-                FavoriteFragment favoriteFragment = (FavoriteFragment) getSupportFragmentManager().findFragmentById(R.id.frame_layout);
-                favoriteFragment.enableSelectionMode(true);
-                Toast.makeText(this, "Chế độ chọn ảnh được bật", Toast.LENGTH_SHORT).show();
-            }
-
-            binding.bottomNavigationView.getMenu().clear();
-            binding.bottomAppBar.setVisibility(View.GONE);
-            binding.camera.setVisibility(View.GONE);
-            binding.selectedBottom.setVisibility(View.VISIBLE);
-
-            // Log trạng thái của selectedBottom
-            if (binding.selectedBottom.getVisibility() == View.VISIBLE) {
-                Log.d("DEBUG", "selectedBottom đã được hiển thị.");
-            } else {
-                Log.d("DEBUG", "selectedBottom không được hiển thị.");
-            }
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
     }
 
     // Lấy item ở trong menu gắn vào toolbar
@@ -299,7 +341,6 @@ public class MainActivity extends AppCompatActivity implements MainCallbacks{
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == 999) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                // Đã cấp quyền, tiếp tục thực hiện hành động
                 //Toast.makeText(this, "Quyền thông qua", Toast.LENGTH_SHORT).show();
             } else {
                 //Toast.makeText(this, "Quyền bị từ chối", Toast.LENGTH_SHORT).show();
@@ -357,6 +398,15 @@ public class MainActivity extends AppCompatActivity implements MainCallbacks{
         if (sender.equals("MORE-FRAG")) {
             try {
                 if(msg.equals("ABOUT")){ replaceFragment(new AboutFragment(), "About"); }
+                if (msg.startsWith("LANGUAGE_")) {
+                    String language = msg.split("_")[1]; // Lấy phần ngôn ngữ từ thông điệp
+                    if (language.equals("en")) {
+                        setLocale("en", true); // Chọn Tiếng Anh
+                    } else if (language.equals("vi")) {
+                        setLocale("vi", true); // Chọn Tiếng Việt
+                    }
+                    binding.bottomNavigationView.setSelectedItemId(R.id.home);
+                }
             }
             catch (Exception e) { Log.e("ERROR", "onStrFromFragToMain " + e.getMessage()); }
         }
@@ -381,7 +431,7 @@ public class MainActivity extends AppCompatActivity implements MainCallbacks{
         @Override
         public void onReceive(Context context, Intent intent) {
             if ("ACTION_LOAD".equals(intent.getAction())) {
-                Toast.makeText(MainActivity.this, "choose", Toast.LENGTH_SHORT).show();
+                Toast.makeText(MainActivity.this, "Deleted", Toast.LENGTH_SHORT).show();
                 Load(); // Gọi hàm Load
             }
         }
@@ -423,7 +473,7 @@ public class MainActivity extends AppCompatActivity implements MainCallbacks{
             if (resultCode == RESULT_OK) {
                 if (imageUri != null) {
                     Load();
-                    Toast.makeText(this, "Hình ảnh đã được lưu vào ứng dụng", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "Hình đã được lưu", Toast.LENGTH_SHORT).show();
                 } else {
                     Toast.makeText(this, "Có lỗi khi lưu hình ảnh", Toast.LENGTH_SHORT).show();
                 }

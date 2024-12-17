@@ -9,6 +9,6 @@
         app:showAsAction="ifRoom"/>
 
     <item
-        android:title="Select"
+        android:title="@string/toolbar_select"
         android:id="@+id/select"/>
 </menu>

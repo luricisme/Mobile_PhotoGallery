@@ -3,10 +3,10 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
-        android:title="Hide"
+        android:title="@string/detail_hide"
         android:id="@+id/hide"/>
 
     <item
-        android:title="Infomation"
+        android:title="@string/detail_info"
         android:id="@+id/info"/>
 </menu>
