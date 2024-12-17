@@ -41,7 +41,7 @@ public class AlbumFragment extends Fragment {
 
     private boolean isViewingPhotos = false;
     private boolean isSelect = false;
-    private int currentLayout = 1; // Default to 1-column layout
+    public int currentLayout = 1; // Default to 1-column layout
 
     int alnumid = -1;
 
@@ -220,6 +220,9 @@ public class AlbumFragment extends Fragment {
 
                     // Dọn danh sách đã chọn
                     selectedItems.clear();
+                    //handlerSelect();
+                    isSelect = false;
+                    enableSelectionMode(isSelect);
                     Toast.makeText(requireContext(), "Albums deleted successfully!", Toast.LENGTH_SHORT).show();
                 })
                 .setNegativeButton("No",(dialog, which) -> {

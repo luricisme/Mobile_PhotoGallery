@@ -16,7 +16,7 @@ public class FavoriteFragment extends Fragment {
 
     public RecyclerView recyclerView;
     private ImageButton btnLayout;
-    private int currentLayout = 1; // Bắt đầu với layout 1 cột
+    public int currentLayout = 1; // Bắt đầu với layout 1 cột
 
 
     @Override
@@ -27,13 +27,16 @@ public class FavoriteFragment extends Fragment {
 
         // Sử dụng view để truy cập RecyclerView
         recyclerView = view.findViewById(R.id.recyclerView);
-        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+        //recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
 
         // Tìm nút chuyển đổi layout
         btnLayout = view.findViewById(R.id.btn_change_layout);
 
         // Xử lý sự kiện bấm nút
         btnLayout.setOnClickListener(v -> switchLayout());
+
+
+        setImageLayout();
 
         // Gọi hàm trong MainActivity
         MainActivity mainActivity = (MainActivity) getActivity();

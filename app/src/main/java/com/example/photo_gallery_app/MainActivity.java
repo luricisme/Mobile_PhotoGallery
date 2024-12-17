@@ -275,14 +275,17 @@ public class MainActivity extends AppCompatActivity implements MainCallbacks{
         if (getSupportFragmentManager().findFragmentById(R.id.frame_layout) instanceof AlbumFragment) {
             //Toast.makeText(this, "album", Toast.LENGTH_SHORT).show();
             albumFragment.loadimg();
+            albumFragment.setLayout();
         }
         if (getSupportFragmentManager().findFragmentById(R.id.frame_layout) instanceof HomeFragment) {
             //Toast.makeText(this, "home", Toast.LENGTH_SHORT).show();
             Load();
+            homeFragment.setImageLayout();
         }
         if (getSupportFragmentManager().findFragmentById(R.id.frame_layout) instanceof FavoriteFragment) {
             //Toast.makeText(this, "favorites", Toast.LENGTH_SHORT).show();
             LoadImgInFavorite();
+            favorFragment.setImageLayout();
         }
     }
 
@@ -372,7 +375,7 @@ public class MainActivity extends AppCompatActivity implements MainCallbacks{
 
     public void Load(){
         //Toast.makeText(this, "choose", Toast.LENGTH_SHORT).show();
-        imageAdapter.notifyDataSetChanged();
+        //imageAdapter.notifyDataSetChanged();
         loadImageFromDevice.loadImagesFromDevice((this));
         loadImageFromDevice.loadImagesFromDatabase(this, ds, imageAdapter, homeFragment.recyclerView);
     }
@@ -458,6 +461,7 @@ public class MainActivity extends AppCompatActivity implements MainCallbacks{
             albumFragment.setLayout();
         }
         if (getSupportFragmentManager().findFragmentById(R.id.frame_layout) instanceof HomeFragment) {
+            Toast.makeText(this, "fffff", Toast.LENGTH_SHORT).show();
             homeFragment.setImageLayout();
         }
         if (getSupportFragmentManager().findFragmentById(R.id.frame_layout) instanceof FavoriteFragment) {

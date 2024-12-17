@@ -104,7 +104,7 @@ public class LoadImageFromDevice {
 
                 uiHandler.post(() -> {
                     if (recyclerView != null) {
-                        recyclerView.setLayoutManager(new LinearLayoutManager(context));
+                        //recyclerView.setLayoutManager(new LinearLayoutManager(context));
                         imageAdapter.setDs(context, ds);
                         recyclerView.setAdapter(imageAdapter);
                     } else {
@@ -128,7 +128,7 @@ public class LoadImageFromDevice {
 
                 uiHandler.post(() -> {
                     if (recyclerView != null) {
-                        recyclerView.setLayoutManager(new LinearLayoutManager(context));
+                        //recyclerView.setLayoutManager(new LinearLayoutManager(context));
                         imageAdapter.setDs(context, ds);
                         recyclerView.setAdapter(imageAdapter);
                     } else {
@@ -152,7 +152,7 @@ public class LoadImageFromDevice {
 
                 uiHandler.post(() -> {
                     if (recyclerView != null) {
-                        recyclerView.setLayoutManager(new LinearLayoutManager(context));
+                        //recyclerView.setLayoutManager(new LinearLayoutManager(context));
                         imageAdapter.setDs(context, ds);
                         recyclerView.setAdapter(imageAdapter);
                     } else {

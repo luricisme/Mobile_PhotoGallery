@@ -23,7 +23,7 @@ import java.util.List;
 public class HomeFragment extends Fragment {
     public RecyclerView recyclerView;
     private ImageButton btnLayout;
-    private int currentLayout = 1; // Bắt đầu với layout 1 cột
+    public int currentLayout = 1; // Bắt đầu với layout 1 cột
     private LinearLayoutManager linearLayoutManager;
     private GridLayoutManager gridLayoutManager2;
     private GridLayoutManager gridLayoutManager3;
@@ -40,7 +40,7 @@ public class HomeFragment extends Fragment {
         linearLayoutManager = new LinearLayoutManager(getContext());
         gridLayoutManager2 = new GridLayoutManager(getContext(), 2);
         gridLayoutManager3 = new GridLayoutManager(getContext(), 3);
-        recyclerView.setLayoutManager(linearLayoutManager);
+        //recyclerView.setLayoutManager(linearLayoutManager);
 
 //        recyclerView.setItemViewCacheSize(30);
 //        gridLayoutManager2.setInitialPrefetchItemCount(6);
@@ -54,6 +54,9 @@ public class HomeFragment extends Fragment {
 
         // Xử lý sự kiện bấm nút
         btnLayout.setOnClickListener(v -> switchLayout());
+
+
+        setImageLayout();
 
         // Gọi hàm trong MainActivity
         MainActivity mainActivity = (MainActivity) getActivity();
