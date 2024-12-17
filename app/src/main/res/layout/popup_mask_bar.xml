@@ -24,7 +24,7 @@
         android:layout_marginStart="20dp"
         android:layout_marginEnd="10dp"
         android:gravity="center"
-        android:text="OK"
+        android:text="@string/popup_mask"
         android:textColor="#FFFFFF"
         android:textSize="20sp" />
 </RelativeLayout>

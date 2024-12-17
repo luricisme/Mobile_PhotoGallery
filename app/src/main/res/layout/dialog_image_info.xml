@@ -11,7 +11,7 @@
         android:layout_height="wrap_content"
         android:layout_marginBottom="20dp"
         android:gravity="center"
-        android:text="Chi tiết"
+        android:text="@string/info_title"
         android:textColor="@android:color/black"
         android:textSize="20sp"
         android:textStyle="bold" />
@@ -20,7 +20,7 @@
         android:id="@+id/tvImageNameLabel"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Name"
+        android:text="@string/info_name"
         android:textSize="12sp"
         android:textColor="@color/unselected_color" />
 
@@ -36,7 +36,7 @@
         android:id="@+id/tvImageDateAddedLabel"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Date"
+        android:text="@string/info_date"
         android:textSize="12sp"
         android:textColor="@color/unselected_color" />
 
@@ -52,7 +52,7 @@
         android:id="@+id/tvImageWHLabel"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Dimensions"
+        android:text="@string/info_dimension"
         android:textSize="12sp"
         android:textColor="@color/unselected_color" />
 
@@ -68,7 +68,7 @@
         android:id="@+id/tvImageSizeLabel"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Size"
+        android:text="@string/info_size"
         android:textSize="12sp"
         android:textColor="@color/unselected_color" />
 
@@ -84,7 +84,7 @@
         android:id="@+id/tvImageMimeTypeLabel"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="MIME Type"
+        android:text="@string/info_mime"
         android:textSize="12sp"
         android:textColor="@color/unselected_color" />
 

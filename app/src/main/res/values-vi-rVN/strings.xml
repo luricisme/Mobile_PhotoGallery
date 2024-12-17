@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">TAlbum</string>
+    <string name="about_appname">Tên ứng dụng: TAlbum</string>
+    <string name="about_version">Phiên bản: 1.0</string>
+    <string name="about_android">Hệ điều hành: 11.0</string>
+    <string name="about_copyright">Bản quyền: No</string>
+    <string name="about_license">Giấy phép: No</string>
+    <string name="edit_save">Lưu</string>
+    <string name="search_place">Tìm kiếm...</string>
+    <string name="add_album_title">"Chọn ít nhất 3 ảnh"</string>
+    <string name="add_album_input">Nhập tên album</string>
+    <string name="add_album_btnCancel">Hủy</string>
+    <string name="add_album_btnAdd">Thêm</string>
+    <string name="info_title">Thông tin</string>
+    <string name="info_name">Tên</string>
+    <string name="info_date">Ngày</string>
+    <string name="info_dimension">Kích thước</string>
+    <string name="info_size">Kích cỡ</string>
+    <string name="info_mime">Loại MIME</string>
+    <string name="more_btn_change_pass">Thay đổi mật khẩu</string>
+    <string name="more_lang">Ngôn ngữ</string>
+    <string name="more_about">Thông tin ứng dụng</string>
+    <string name="ablum_name">Tên Album</string>
+    <string name="popup_mask">OK</string>
+    <string name="bottom_menu_home">Ảnh</string>
+    <string name="bottom_menu_album">Album</string>
+    <string name="bottom_menu_favorite">Yêu thích</string>
+    <string name="bottom_menu_more">Thêm</string>
+    <string name="detail_hide">Ẩn</string>
+    <string name="detail_info">Thông tin</string>
+    <string name="toolbar_select">Chọn</string>
+
+    <string name="dialog_title">Xác nhận xóa</string>
+    <string name="dialog_message">Bạn có chắc chắn muốn xóa không?</string>
+    <string name="positive_button">Có</string>
+    <string name="negative_button">Không</string>
+
+    <string name="lang_title">Chọn ngôn ngữ</string>
+    <string name="lang_eng">Tiếng anh</string>
+    <string name="lang_vie">Tiếng việt</string>
+</resources>
