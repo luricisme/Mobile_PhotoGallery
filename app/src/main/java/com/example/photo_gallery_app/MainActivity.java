@@ -184,9 +184,7 @@ public class MainActivity extends AppCompatActivity implements MainCallbacks{
                 handleImageDeletion(favoriteFragment.recyclerView, this);
             }
             else if (currentFragment instanceof AlbumFragment) {
-                ((AlbumFragment) currentFragment).deleteSelectedAlbums();
-                AlbumFragment albumFragment = (AlbumFragment) currentFragment;
-                handleImageDeletion(albumFragment.recyclerView, this);
+                albumFragment.handlerErase();
             }
             binding.bottomNavigationView.inflateMenu(R.menu.bottom_menu);
             binding.bottomAppBar.setVisibility(View.VISIBLE);
@@ -205,6 +203,10 @@ public class MainActivity extends AppCompatActivity implements MainCallbacks{
             }
             binding.bottomNavigationView.setSelectedItemId(currentMenuId);
         });
+    }
+
+    public void callHandleImageDeletion(){
+        handleImageDeletion(albumFragment.recyclerView, this);
     }
 
     @Override
@@ -269,6 +271,21 @@ public class MainActivity extends AppCompatActivity implements MainCallbacks{
         setLocale(language, false);
     }
 
+    public void loadImgAfterDelete(){
+        if (getSupportFragmentManager().findFragmentById(R.id.frame_layout) instanceof AlbumFragment) {
+            //Toast.makeText(this, "album", Toast.LENGTH_SHORT).show();
+            albumFragment.loadimg();
+        }
+        if (getSupportFragmentManager().findFragmentById(R.id.frame_layout) instanceof HomeFragment) {
+            //Toast.makeText(this, "home", Toast.LENGTH_SHORT).show();
+            Load();
+        }
+        if (getSupportFragmentManager().findFragmentById(R.id.frame_layout) instanceof FavoriteFragment) {
+            //Toast.makeText(this, "favorites", Toast.LENGTH_SHORT).show();
+            LoadImgInFavorite();
+        }
+    }
+
     private void handleImageDeletion(RecyclerView recyclerView, Context context) {
         RecyclerView.Adapter<?> adapter = recyclerView.getAdapter();
         if (adapter instanceof ImageAdapter) {
@@ -302,10 +319,7 @@ public class MainActivity extends AppCompatActivity implements MainCallbacks{
                                     Toast.makeText(context, "Không thể xóa ảnh: " + imagePath, Toast.LENGTH_SHORT).show();
                                 }
                             }
-                            List<String> allImages = db.getAllPhotoPaths();
-                            imageAdapter.setDs(context, allImages);
-                            imageAdapter.clearSelectedImages();
-                            imageAdapter.notifyDataSetChanged();
+                            loadImgAfterDelete();
 
                             Toast.makeText(context, "Đã xóa các ảnh đã chọn", Toast.LENGTH_SHORT).show();
                         } catch (SecurityException e) {
@@ -432,7 +446,7 @@ public class MainActivity extends AppCompatActivity implements MainCallbacks{
         public void onReceive(Context context, Intent intent) {
             if ("ACTION_LOAD".equals(intent.getAction())) {
                 Toast.makeText(MainActivity.this, "Deleted", Toast.LENGTH_SHORT).show();
-                Load(); // Gọi hàm Load
+                loadImgAfterDelete(); // Gọi hàm Load
             }
         }
     };

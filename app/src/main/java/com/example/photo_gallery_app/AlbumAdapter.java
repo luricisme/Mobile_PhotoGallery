@@ -36,6 +36,11 @@ public class AlbumAdapter extends RecyclerView.Adapter<AlbumAdapter.AlbumViewHol
         this.databaseHandler = new DatabaseHandler(context);
     }
 
+    public void setList(List<Album> albumList) {
+        this.albumList = albumList;
+        //this.isSelectionMode = false;
+    }
+
     // Thiết lập listener cho AlbumFragment
     public void setOnItemSelectedListener(OnItemSelectedListener listener) {
         this.onItemSelectedListener = listener;

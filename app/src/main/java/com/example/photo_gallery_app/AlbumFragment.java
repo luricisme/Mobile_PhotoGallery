@@ -43,6 +43,8 @@ public class AlbumFragment extends Fragment {
     private boolean isSelect = false;
     private int currentLayout = 1; // Default to 1-column layout
 
+    int alnumid = -1;
+
     @SuppressLint("MissingInflatedId")
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -57,6 +59,7 @@ public class AlbumFragment extends Fragment {
         btnBack = view.findViewById(R.id.btn_back_album);
         btnBack.setVisibility(View.GONE); // Hide back button initially
         btnLayout.setVisibility(View.GONE);
+        isSelect = false;
 
         // Initialize DatabaseHandler
         databaseHandler = new DatabaseHandler(requireContext());
@@ -73,6 +76,7 @@ public class AlbumFragment extends Fragment {
             @Override
             public void onItemClick(Album album) {
                 onAlbumClicked(album);
+                alnumid = album.getId();
                 switchLayout(false);
             }
         });
@@ -98,7 +102,7 @@ public class AlbumFragment extends Fragment {
             } else {
                 selectedItems.remove(album.getName());  // Loại bỏ album khỏi danh sách chọn
             }
-            Toast.makeText(mainActivity, String.valueOf(selectedItems.size()), Toast.LENGTH_SHORT).show();
+            //Toast.makeText(mainActivity, String.valueOf(selectedItems.size()), Toast.LENGTH_SHORT).show();
         });
 
         // Thiết lập listener để cập nhật selectedItems khi người dùng chọn album
@@ -108,8 +112,8 @@ public class AlbumFragment extends Fragment {
             } else {
                 selectedItems.remove(string);  // Loại bỏ album khỏi danh sách chọn
             }
-            Toast.makeText(mainActivity, string, Toast.LENGTH_SHORT).show();
-            Toast.makeText(mainActivity, String.valueOf(selectedItems.size()), Toast.LENGTH_SHORT).show();
+            //Toast.makeText(mainActivity, string, Toast.LENGTH_SHORT).show();
+            //Toast.makeText(mainActivity, String.valueOf(selectedItems.size()), Toast.LENGTH_SHORT).show();
         });
 
         // Layout switch button click handler
@@ -122,6 +126,44 @@ public class AlbumFragment extends Fragment {
     public void handlerSelect() {
         isSelect = !isSelect;
         enableSelectionMode(isSelect);
+    }
+
+    public void loadimg(){
+        //Toast.makeText(mainActivity, "loadimg", Toast.LENGTH_SHORT).show();
+        if (alnumid == -1){
+            showAllPhotos();
+        }
+        else if (alnumid == -2){
+            showFavorPhotos();
+        }
+        else {
+            isViewingPhotos = true;
+
+            // Cập nhật giao diện
+            btnAddAlbum.setVisibility(View.GONE);
+            btnBack.setVisibility(View.VISIBLE);
+            btnLayout.setVisibility(View.VISIBLE);
+
+            recyclerView.setAdapter(null);
+
+            if (mainActivity != null) {
+                mainActivity.LoadImgInAlbumID(alnumid);
+            }
+        }
+    }
+
+    // Xử lý khi nhấn vào Select
+    public void handlerErase() {
+        if (isViewingPhotos){
+            //Toast.makeText(mainActivity, "call back", Toast.LENGTH_SHORT).show();
+            mainActivity.callHandleImageDeletion();
+        }
+        else {
+            //Toast.makeText(mainActivity, "call this", Toast.LENGTH_SHORT).show();
+            deleteSelectedAlbums();
+            reset();
+        }
+
     }
 
     // Enable selection mode
@@ -201,8 +243,9 @@ public class AlbumFragment extends Fragment {
         btnLayout.setVisibility(View.GONE);
         btnBack.setVisibility(View.GONE);
 
-        recyclerView.setLayoutManager(new GridLayoutManager(requireContext(), 2));
-        recyclerView.setAdapter(albumAdapter);
+//        recyclerView.setLayoutManager(new GridLayoutManager(requireContext(), 2));
+//        recyclerView.setAdapter(albumAdapter);
+        reset();
     }
 
     private void onAlbumClicked(Album album) {
@@ -393,6 +436,23 @@ public class AlbumFragment extends Fragment {
         if (isViewingPhotos){
             setImageLayout();
         }
+    }
+
+    public void reset() {
+        //Toast.makeText(mainActivity, "resetttt", Toast.LENGTH_SHORT).show();
+        isSelect = false;
+        albumList.clear();
+        albumList.add(new Album(-1, "All Photos", databaseHandler.getTotalPhoto(), databaseHandler.getFirstPhotoPath())); // "All Photos" album
+        albumList.add(new Album(-2, "Favorites", databaseHandler.getTotalFavoritedPhotos(), databaseHandler.getFirstFavoritePhotoPath()));
+        albumList.addAll(databaseHandler.getAllAlbumsWithFirstPhoto()); // Fetch all albums from SQLite
+
+        albumAdapter.setList(albumList);
+        albumAdapter.notifyDataSetChanged();
+
+
+        // Set layout manager to GridLayout with 2 columns
+        recyclerView.setLayoutManager(new GridLayoutManager(requireContext(), 2));
+        recyclerView.setAdapter(albumAdapter);
     }
 
     public void setImageLayout() {
