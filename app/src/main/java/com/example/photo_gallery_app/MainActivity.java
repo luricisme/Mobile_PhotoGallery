@@ -461,7 +461,7 @@ public class MainActivity extends AppCompatActivity implements MainCallbacks{
             albumFragment.setLayout();
         }
         if (getSupportFragmentManager().findFragmentById(R.id.frame_layout) instanceof HomeFragment) {
-            Toast.makeText(this, "fffff", Toast.LENGTH_SHORT).show();
+            //Toast.makeText(this, "fffff", Toast.LENGTH_SHORT).show();
             homeFragment.setImageLayout();
         }
         if (getSupportFragmentManager().findFragmentById(R.id.frame_layout) instanceof FavoriteFragment) {
