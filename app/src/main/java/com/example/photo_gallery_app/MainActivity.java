@@ -471,6 +471,12 @@ public class MainActivity extends AppCompatActivity implements MainCallbacks{
     }
 
     @Override
+    protected void onStart() {
+        super.onStart();
+        Load();
+    }
+
+    @Override
     protected void onResume() {
         super.onResume();
         loadImageFromDevice.loadImagesFromDevice((this));
