@@ -13,7 +13,7 @@ import java.util.List;
 
 public class DatabaseHandler extends SQLiteOpenHelper {
     private static final String DATABASE_NAME = "PhotoAlbum.db";
-    private static final int DATABASE_VERSION = 12;
+    private static final int DATABASE_VERSION = 13;
 
     // Table and columns (photos)
     private static final String TABLE_PHOTOS = "photos";
@@ -124,6 +124,63 @@ public class DatabaseHandler extends SQLiteOpenHelper {
             db.close();
         }
     }
+
+    public List<String> getAllAlbums() {
+        List<String> albumList = new ArrayList<>();
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        // Truy vấn tất cả các tên album
+        String query = "SELECT " + COLUMN_ALBUM_NAME + " FROM " + TABLE_ALBUM;
+        Cursor cursor = db.rawQuery(query, null);
+
+        if (cursor.moveToFirst()) {
+            do {
+                albumList.add(cursor.getString(0)); // Lấy tên album
+            } while (cursor.moveToNext());
+        }
+
+        cursor.close();
+        db.close();
+
+        return albumList;
+    }
+
+    public boolean isPhotoInAlbum(int photoId, int albumId) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        String query = "SELECT COUNT(*) FROM " + TABLE_PHOTO_IN_ALBUM +
+                " WHERE " + COLUMN_ID + " = ? AND " + COLUMN_ALBUM_ID + " = ?";
+        Cursor cursor = db.rawQuery(query, new String[]{String.valueOf(photoId), String.valueOf(albumId)});
+
+        boolean exists = false;
+        if (cursor.moveToFirst()) {
+            exists = cursor.getInt(0) > 0; // Nếu COUNT > 0 thì ảnh đã có trong album
+        }
+        cursor.close();
+        db.close();
+        return exists;
+    }
+
+
+    public int getAlbumIdByName(String albumName) {
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        // Truy vấn để tìm ID album dựa trên tên
+        String query = "SELECT " + COLUMN_ALBUM_ID + " FROM " + TABLE_ALBUM
+                + " WHERE " + COLUMN_ALBUM_NAME + " = ?";
+        Cursor cursor = db.rawQuery(query, new String[]{albumName});
+
+        int albumId = -1; // Giá trị mặc định nếu không tìm thấy
+        if (cursor.moveToFirst()) {
+            albumId = cursor.getInt(0); // Lấy ID album
+        }
+
+        cursor.close();
+        db.close();
+
+        return albumId;
+    }
+
+
 
     public void deleteHiddenImage(String imagePath) {
         SQLiteDatabase db = this.getWritableDatabase();
@@ -268,7 +325,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                 "ON a." + COLUMN_ALBUM_ID + " = pi." + COLUMN_ALBUM_ID + " " +
                 "LEFT JOIN " + TABLE_PHOTOS + " p " + // Kết nối bảng photos để lấy file_path
                 "ON pi." + COLUMN_ID + " = p." + COLUMN_ID +
-                " WHERE " + COLUMN_IS_HIDDEN + " != 1" + " " +
+                " AND p." + COLUMN_IS_HIDDEN + " != 1" + " " +
                 "GROUP BY a." + COLUMN_ALBUM_ID;
 
 
@@ -552,6 +609,16 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     }
 
     // Cập nhật trạng thái yêu thích
+    public void updatePhotoFavorStatusByID(int id, boolean isFavorited) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(COLUMN_IS_FAVOR, isFavorited ? 1 : 0);
+
+        db.update(TABLE_PHOTOS, values, COLUMN_ID + " = ?", new String[]{String.valueOf(id)});
+        db.close();
+    }
+
+    // Cập nhật trạng thái yêu thích
     public void updatePhotoHiddenStatus(String filePath, boolean isHidden) {
         SQLiteDatabase db = this.getWritableDatabase();
 
@@ -638,7 +705,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     public String getFirstPhotoPath() {
         String filePath = null;
         SQLiteDatabase db = this.getReadableDatabase();
-        String query = "SELECT " + COLUMN_FILE_PATH + " FROM " + TABLE_PHOTOS + " LIMIT 1";
+        String query = "SELECT " + COLUMN_FILE_PATH + " FROM " + TABLE_PHOTOS + " WHERE " + COLUMN_IS_HIDDEN + " !=1 LIMIT 1";
         Cursor cursor = db.rawQuery(query, null);
 
         if (cursor.moveToFirst()) {
@@ -673,7 +740,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
             filePath = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_FILE_PATH));
         }
         cursor.close();
-        return filePath;
+        //return filePath;
+        return null;
     }
 
     // Xóa tất cả ảnh

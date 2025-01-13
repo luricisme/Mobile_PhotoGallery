@@ -12,6 +12,7 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.content.res.Resources;
+import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -39,6 +40,8 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.photo_gallery_app.databinding.ActivityMainBinding;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -59,6 +62,9 @@ public class MainActivity extends AppCompatActivity implements MainCallbacks{
     private static final FavoriteFragment favorFragment = new FavoriteFragment();
 
     private static final int REQUEST_CODE_STORAGE_PERMISSION = 100;
+
+    int albumid = -1;
+    int sta = 1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -114,13 +120,16 @@ public class MainActivity extends AppCompatActivity implements MainCallbacks{
             int itemId = item.getItemId();
             if(itemId == R.id.home){
                 replaceFragment(homeFragment, getString(R.string.bottom_menu_home));
+                sta=1;
             }
             else if(itemId == R.id.album)
             {
                 replaceFragment(albumFragment, getString(R.string.bottom_menu_album));
+                sta=2;
             }
             else if(itemId == R.id.favorite){
                 replaceFragment(favorFragment, getString(R.string.bottom_menu_favorite));
+                sta=3;
             }
             else if(itemId == R.id.more){
                 replaceFragment(new MoreFragment(), getString(R.string.bottom_menu_more));
@@ -146,6 +155,7 @@ public class MainActivity extends AppCompatActivity implements MainCallbacks{
 
         ImageButton btnDone = findViewById(R.id.btnDone);
         btnDone.setOnClickListener(v -> {
+            imageAdapter.clearSelectedImages();
             Fragment currentFragment = getSupportFragmentManager().findFragmentById(R.id.frame_layout);
             if (currentFragment instanceof HomeFragment) {
                 ((HomeFragment) currentFragment).enableSelectionMode(false);
@@ -226,6 +236,29 @@ public class MainActivity extends AppCompatActivity implements MainCallbacks{
             }
             binding.bottomNavigationView.setSelectedItemId(currentMenuId);
         });
+
+        ImageButton btnAddFromAlbum = findViewById(R.id.btnAdd);
+        btnAddFromAlbum.setOnClickListener(v -> {
+            Fragment currentFragment = getSupportFragmentManager().findFragmentById(R.id.frame_layout);
+            callHandleImageAddToAlbum();
+
+            binding.bottomNavigationView.inflateMenu(R.menu.bottom_menu);
+            binding.bottomAppBar.setVisibility(View.VISIBLE);
+            binding.camera.setVisibility(View.VISIBLE);
+            binding.selectedBottom.setVisibility(View.GONE);
+
+            int currentMenuId = R.id.home;
+            if (currentFragment instanceof HomeFragment) {
+                currentMenuId = R.id.home;
+            } else if (currentFragment instanceof AlbumFragment) {
+                currentMenuId = R.id.album;
+            } else if (currentFragment instanceof FavoriteFragment) {
+                currentMenuId = R.id.favorite;
+            } else if(currentFragment instanceof MoreFragment){
+                currentMenuId = R.id.more;
+            }
+            binding.bottomNavigationView.setSelectedItemId(currentMenuId);
+        });
     }
 
     public void callHandleImageDeletion(){
@@ -233,7 +266,21 @@ public class MainActivity extends AppCompatActivity implements MainCallbacks{
     }
 
     public void callHandleImageDelFromAlbum(){
-        handleImageDelFromAlbum(albumFragment.recyclerView, this);
+        if (sta == 2){
+            handleImageDelFromAlbum(albumFragment.recyclerView, this);
+        }
+        else if (sta == 3){
+            handleImageDelFromAlbum(favorFragment.recyclerView, this);
+        }
+    }
+
+    public void callHandleImageAddToAlbum(){
+        if (sta == 1){
+            handleImageAddToAlbum(homeFragment.recyclerView, this);
+        }
+        else if (sta == 2){
+            handleImageAddToAlbum(albumFragment.recyclerView, this);
+        }
     }
 
     @Override
@@ -247,12 +294,16 @@ public class MainActivity extends AppCompatActivity implements MainCallbacks{
                 binding.selectedBottom.findViewById(R.id.btnAdd).setVisibility(View.GONE);
 
                 AlbumFragment albumFragment = (AlbumFragment) getSupportFragmentManager().findFragmentById(R.id.frame_layout);
-                if (albumFragment.isViewingPhotos()) {
+                albumid = albumFragment.getAlnumid();
+                if (albumFragment.isViewingPhotos() && albumid != -1) {
                     // Hiển thị nút DelFromAlbum nếu isViewingPhotos là true
                     binding.selectedBottom.findViewById(R.id.btnDelFromAlbum).setVisibility(View.VISIBLE);
                 } else {
                     // Ẩn nút DelFromAlbum nếu isViewingPhotos là false
                     binding.selectedBottom.findViewById(R.id.btnDelFromAlbum).setVisibility(View.GONE);
+                }
+                if (albumid == -1){
+                    binding.selectedBottom.findViewById(R.id.btnAdd).setVisibility(View.VISIBLE);
                 }
                 albumFragment.handlerSelect();
             }
@@ -265,7 +316,7 @@ public class MainActivity extends AppCompatActivity implements MainCallbacks{
                 //Toast.makeText(this, "Chế độ chọn ảnh được bật", Toast.LENGTH_SHORT).show();
             }
             if (getSupportFragmentManager().findFragmentById(R.id.frame_layout) instanceof FavoriteFragment) {
-                binding.selectedBottom.findViewById(R.id.btnDelFromAlbum).setVisibility(View.GONE);
+                binding.selectedBottom.findViewById(R.id.btnDelFromAlbum).setVisibility(View.VISIBLE);
                 binding.selectedBottom.findViewById(R.id.btnAdd).setVisibility(View.GONE);
 
                 FavoriteFragment favoriteFragment = (FavoriteFragment) getSupportFragmentManager().findFragmentById(R.id.frame_layout);
@@ -316,6 +367,7 @@ public class MainActivity extends AppCompatActivity implements MainCallbacks{
     }
 
     public void loadImgAfterDelete(){
+        imageAdapter.clearSelectedImages();
         if (getSupportFragmentManager().findFragmentById(R.id.frame_layout) instanceof AlbumFragment) {
             //Toast.makeText(this, "album", Toast.LENGTH_SHORT).show();
             albumFragment.loadimg();
@@ -407,31 +459,84 @@ public class MainActivity extends AppCompatActivity implements MainCallbacks{
                     .setMessage(getString(R.string.dialog_message_delfromalbum))
                     .setPositiveButton(getString(R.string.positive_button), (dialog, which) -> {
                         try {
-                            ContentResolver contentResolver = context.getContentResolver();
                             DatabaseHandler db = new DatabaseHandler(context);
 
                             // Lặp qua từng ảnh và xóa
                             for (String imagePath : selectedImages) {
-                                Uri imageUri = Uri.parse(imagePath);
-                                int rowsDeleted = contentResolver.delete(imageUri, null, null);
-
-                                if (rowsDeleted > 0) {
-                                    int imageId = db.getImageIdFromPath(imagePath);
-                                    if (imageId != -1) {
-                                        db.deletePhoto(imageId);
+                                int imageId = db.getImageIdFromPath(imagePath);
+                                if (imageId != -1) {
+                                    if (sta == 3){
+                                        Toast.makeText(context, "Favor", Toast.LENGTH_SHORT).show();
+                                        db.updatePhotoFavorStatusByID(imageId, false);
                                     }
-                                } else {
-                                    Toast.makeText(context, "Không thể xóa ảnh: " + imagePath, Toast.LENGTH_SHORT).show();
+                                    else if (albumid > 0) {
+                                        db.deletePhotoFromAlbum(imageId, albumid);
+                                    } else if (albumid == -2) {
+                                        Toast.makeText(context, "Favor", Toast.LENGTH_SHORT).show();
+                                        db.updatePhotoFavorStatusByID(imageId, false);
+                                    } else if (albumid == -3) {
+                                        String realPath = db.getHiddenImagePathFromPhotoPath(imagePath);
+                                        if (realPath == null || realPath.isEmpty()) {
+                                            Toast.makeText(this, "Không tìm thấy đường dẫn thực của ảnh", Toast.LENGTH_SHORT).show();
+
+                                        }
+                                        else {
+                                            File imageFile = new File(realPath);
+                                            // Hiển thị lại ảnh
+                                            File hiddenDir = new File(Environment.getExternalStorageDirectory(), ".inome");
+                                            File hiddenImage = new File(hiddenDir, imageFile.getName());
+
+                                            if (hiddenImage.exists()) {
+                                                File publicDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "MyAppPhotos");
+
+                                                if (!publicDir.exists()) publicDir.mkdirs();
+
+                                                File originalFile = new File(publicDir, hiddenImage.getName());
+                                                boolean success = hiddenImage.renameTo(originalFile);
+
+                                                if (success) {
+                                                    //newPath = originalFile.getAbsolutePath();
+                                                    db.deleteHiddenImage(imagePath);
+                                                    db.updatePhotoHiddenStatus(imagePath, false);
+
+                                                    // Quét lại MediaStore để cập nhật
+                                                    MediaScannerConnection.scanFile(
+                                                            this,
+                                                            new String[]{originalFile.getAbsolutePath()},
+                                                            null,
+                                                            (path, uri) -> Log.d("MediaScanner", "File updated: " + path)
+                                                    );
+
+                                                    Toast.makeText(this, "Ảnh đã được hiển thị lại", Toast.LENGTH_SHORT).show();
+                                                } else {
+                                                    Toast.makeText(this, "Không thể hiển thị lại ảnh", Toast.LENGTH_SHORT).show();
+                                                }
+                                            } else {
+                                                Toast.makeText(this, "Ảnh không tồn tại trong thư mục ẩn", Toast.LENGTH_SHORT).show();
+                                            }
+                                        }
+
+                                    }
                                 }
                             }
                             loadImgAfterDelete();
+                            if (albumid > 0){
 
-                            Toast.makeText(context, "Đã xóa các ảnh đã chọn", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(context, "Đã loại các ảnh đã chọn khỏi album", Toast.LENGTH_SHORT).show();
+                            }
+                            else if (albumid == -2){
+
+                                Toast.makeText(context, "Đã loại các ảnh đã chọn khỏi Yêu thích", Toast.LENGTH_SHORT).show();
+                            }
+                            else if (albumid == -3){
+
+                                Toast.makeText(context, "Đã hiện các ảnh đã chọn khỏi mục ẩn", Toast.LENGTH_SHORT).show();
+                            }
                         } catch (SecurityException e) {
                             Toast.makeText(context, "Permission denied: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                         } catch (Exception e) {
                             e.printStackTrace();
-                            Toast.makeText(context, "Lỗi khi xóa ảnh: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                            Toast.makeText(context, "Lỗi khi loại ảnh: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                         }
                     })
                     .setNegativeButton(getString(R.string.negative_button), (dialog, which) -> dialog.dismiss());
@@ -447,6 +552,80 @@ public class MainActivity extends AppCompatActivity implements MainCallbacks{
             dialog.show();
         }
     }
+
+    private void handleImageAddToAlbum(RecyclerView recyclerView, Context context) {
+        RecyclerView.Adapter<?> adapter = recyclerView.getAdapter();
+        if (adapter instanceof ImageAdapter) {
+            ImageAdapter imageAdapter = (ImageAdapter) adapter;
+            List<String> selectedImages = imageAdapter.getSelectedImages();
+
+            if (selectedImages.isEmpty()) {
+                Toast.makeText(context, "Không có ảnh nào được chọn để thêm vào album", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            DatabaseHandler db = new DatabaseHandler(context);
+            List<String> albumList = db.getAllAlbums(); // Lấy danh sách album từ DB
+
+            if (albumList.isEmpty()) {
+                Toast.makeText(context, "Không có album nào để thêm ảnh", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            // Hiển thị dialog danh sách album
+            String[] albumArray = albumList.toArray(new String[0]);
+            boolean[] checkedItems = new boolean[albumArray.length]; // Trạng thái chọn album
+
+            AlertDialog.Builder builder = new AlertDialog.Builder(context)
+                    .setTitle("Chọn album để thêm ảnh")
+                    .setMultiChoiceItems(albumArray, checkedItems, (dialog, which, isChecked) -> {
+                        // Cập nhật trạng thái chọn album
+                        checkedItems[which] = isChecked;
+                    })
+                    .setPositiveButton("Thêm", (dialog, which) -> {
+                        try {
+                            for (int i = 0; i < albumArray.length; i++) {
+                                if (checkedItems[i]) {
+                                    // Lấy album ID từ tên album
+                                    int albumId = db.getAlbumIdByName(albumArray[i]);
+
+                                    if (albumId != -1) {
+                                        for (String imagePath : selectedImages) {
+                                            int imageId = db.getImageIdFromPath(imagePath);
+                                            Toast.makeText(context, "11111111", Toast.LENGTH_SHORT).show();
+                                            if (imageId != -1) {
+                                                if (db.isPhotoInAlbum(imageId, albumId)) {
+                                                    Toast.makeText(context, "Ảnh \"" + imagePath + "\" đã nằm trong album.", Toast.LENGTH_SHORT).show();
+                                                } else {
+                                                    db.addPhotoToAlbum(imageId, albumId);
+                                                    Toast.makeText(context, "Đã thêm ảnh \"" + imagePath + "\" vào album.", Toast.LENGTH_SHORT).show();
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            loadImgAfterDelete();
+                            //Toast.makeText(context, "Ảnh đã được thêm vào album", Toast.LENGTH_SHORT).show();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                            Toast.makeText(context, "Lỗi khi thêm ảnh vào album: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                        }
+                    })
+                    .setNegativeButton(getString(R.string.negative_button), (dialog, which) -> dialog.dismiss());
+
+            AlertDialog dialog = builder.create();
+            dialog.setOnShowListener(d -> {
+                Button positiveButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
+                Button negativeButton = dialog.getButton(AlertDialog.BUTTON_NEGATIVE);
+                positiveButton.setTextColor(context.getResources().getColor(R.color.black));
+                negativeButton.setTextColor(context.getResources().getColor(R.color.black));
+            });
+
+            dialog.show();
+        }
+    }
+
 
 
     // Lấy item ở trong menu gắn vào toolbar

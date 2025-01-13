@@ -127,6 +127,7 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHol
         }
     }
 
+
     public interface OnItemSelectedListener {
         void onItemSelected(String string, boolean isSelected);
     }

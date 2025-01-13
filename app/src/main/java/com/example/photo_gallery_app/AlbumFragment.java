@@ -170,6 +170,10 @@ public class AlbumFragment extends Fragment {
 
     }
 
+    public int getAlnumid(){
+        return alnumid;
+    }
+
     // Enable selection mode
     public void enableSelectionMode(boolean isEnabled) {
         isSelect = isEnabled;

@@ -40,4 +40,6 @@
     <string name="lang_vie">Vietnamese</string>
     <string name="dialog_title_delfromalbum">Confirm remove</string>
     <string name="dialog_message_delfromalbum">Are you sure you want to remove this photo?</string>
+    <string name="dialog_title_addfromalbum">Confirm add</string>
+    <string name="dialog_message_addfromalbum">Are you sure you want to add this photo?</string>
 </resources>
