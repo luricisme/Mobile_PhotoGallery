@@ -41,11 +41,12 @@ public class AlbumFragment extends Fragment {
 
     private List<String> selectedItems = new ArrayList<>();
 
-    private boolean isViewingPhotos = false;
+    public boolean isViewingPhotos = false;
     private boolean isSelect = false;
     public int currentLayout = 1; // Default to 1-column layout
 
     int alnumid = -1;
+    int status_hide = 0;
 
     @SuppressLint("MissingInflatedId")
     @Override
@@ -139,7 +140,7 @@ public class AlbumFragment extends Fragment {
             showFavorPhotos();
         }
         else if (alnumid == -3){
-            showPasswordDialog();
+            showHidePhotos();
         }
         else {
             isViewingPhotos = true;
