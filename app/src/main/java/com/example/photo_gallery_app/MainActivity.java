@@ -765,7 +765,7 @@ public class MainActivity extends AppCompatActivity implements MainCallbacks{
 
     @Override
     protected void onResume() {
-        //Toast.makeText(this, "tt", Toast.LENGTH_SHORT).show();
+       // Toast.makeText(this, "tt", Toast.LENGTH_SHORT).show();
         if (getSupportFragmentManager().findFragmentById(R.id.frame_layout) instanceof AlbumFragment) {
             //Toast.makeText(this, "album", Toast.LENGTH_SHORT).show();
             albumFragment.loadimg();
