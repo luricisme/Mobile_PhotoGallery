@@ -13,7 +13,7 @@ import java.util.List;
 
 public class DatabaseHandler extends SQLiteOpenHelper {
     private static final String DATABASE_NAME = "PhotoAlbum.db";
-    private static final int DATABASE_VERSION = 10;
+    private static final int DATABASE_VERSION = 12;
 
     // Table and columns (photos)
     private static final String TABLE_PHOTOS = "photos";
@@ -85,6 +85,14 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                 + "FOREIGN KEY (" + COLUMN_ID + ") REFERENCES " + TABLE_PHOTOS + " (" + COLUMN_ID + ")"
                 + ")";
         db.execSQL(CREATE_PHOTO_IN_ALBUM_TABLE);
+
+        String CREATE_IMAGE_HIDDEN_TABLE = "CREATE TABLE image_hidden ("
+                + "id INTEGER PRIMARY KEY AUTOINCREMENT, "
+                + "photo_id INTEGER, "
+                + "hidden_url TEXT, "
+                + "FOREIGN KEY (photo_id) REFERENCES photos (id)"
+                + ")";
+        db.execSQL(CREATE_IMAGE_HIDDEN_TABLE);
     }
 
     @Override
@@ -93,8 +101,70 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_ALBUM);
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_PHOTO_DELETED);
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_PHOTO_IN_ALBUM);
+        db.execSQL("DROP TABLE IF EXISTS image_hidden");
         onCreate(db);
     }
+
+    public void addHiddenImage(String imagePath, String hiddenUrl) {
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        // Lấy ID từ `photos` dựa trên `imagePath`
+        String selectQuery = "SELECT " + COLUMN_ID + " FROM " + TABLE_PHOTOS + " WHERE " + COLUMN_FILE_PATH + "=?";
+        Cursor cursor = db.rawQuery(selectQuery, new String[]{imagePath});
+
+        if (cursor != null && cursor.moveToFirst()) {
+            @SuppressLint("Range") int photoId = cursor.getInt(cursor.getColumnIndex(COLUMN_ID));
+            cursor.close();
+
+            ContentValues values = new ContentValues();
+            values.put("photo_id", photoId);
+            values.put("hidden_url", hiddenUrl);
+
+            db.insert("image_hidden", null, values);
+            db.close();
+        }
+    }
+
+    public void deleteHiddenImage(String imagePath) {
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        // Lấy ID từ `photos` dựa trên `imagePath`
+        String selectQuery = "SELECT " + COLUMN_ID + " FROM " + TABLE_PHOTOS + " WHERE " + COLUMN_FILE_PATH + "=?";
+        Cursor cursor = db.rawQuery(selectQuery, new String[]{imagePath});
+
+        if (cursor != null && cursor.moveToFirst()) {
+            @SuppressLint("Range") int photoId = cursor.getInt(cursor.getColumnIndex(COLUMN_ID));
+            cursor.close();
+
+            // Xóa từ bảng image_hidden
+            db.delete("image_hidden", "photo_id = ?", new String[]{String.valueOf(photoId)});
+            db.close();
+        }
+    }
+
+    public String getHiddenImagePathFromPhotoPath(String imagePath) {
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        // Truy vấn bảng image_hidden để lấy hidden_url dựa trên photo_id
+        String selectQuery = "SELECT " + "hidden_url" + " FROM image_hidden "
+                + "INNER JOIN photos ON image_hidden.photo_id = photos.id "
+                + "WHERE photos.file_path = ?";
+
+        Cursor cursor = db.rawQuery(selectQuery, new String[]{imagePath});
+
+        if (cursor != null && cursor.moveToFirst()) {
+            @SuppressLint("Range") String hiddenUrl = cursor.getString(cursor.getColumnIndex("hidden_url"));
+            cursor.close();
+            db.close();
+            return hiddenUrl;
+        } else {
+            db.close();
+            return null;  // Không tìm thấy liên kết ẩn
+        }
+    }
+
+
+
 
     // Thêm ảnh vào bảng photos
     public void addPhoto(String name, String date, String tag, int isHidden, int isFavor, String filePath, long size) {
@@ -123,7 +193,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         Cursor cursor = null;
 
         try {
-            String query = "SELECT COUNT(*) FROM " + TABLE_PHOTOS;
+            String query = "SELECT COUNT(*) FROM " + TABLE_PHOTOS + " WHERE " + COLUMN_IS_HIDDEN + " != 1";
             cursor = db.rawQuery(query, null);
 
             if (cursor.moveToFirst()) {
@@ -152,8 +222,10 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
     // Cập nhật số ảnh trong album
     public void updatePhotoCount(int albumId) {
-        SQLiteDatabase db = this.getWritableDatabase();
-        String query = "SELECT COUNT(*) FROM " + TABLE_PHOTO_IN_ALBUM + " WHERE " + COLUMN_ALBUM_ID + " = ?";
+        SQLiteDatabase db = this.getReadableDatabase();
+        String query = "SELECT COUNT(*) FROM " + TABLE_PHOTO_IN_ALBUM + " pa " +
+                "INNER JOIN " + TABLE_PHOTOS + " p ON pa." + COLUMN_ID + " = p." + COLUMN_ID +
+                " WHERE pa." + COLUMN_ALBUM_ID + " = ? AND (p." + COLUMN_IS_HIDDEN + " = 0 OR p." + COLUMN_IS_HIDDEN + " IS NULL)";
         Cursor cursor = db.rawQuery(query, new String[]{String.valueOf(albumId)});
 
         int photoCount = 0;
@@ -167,6 +239,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         db.update(TABLE_ALBUM, values, COLUMN_ALBUM_ID + " = ?", new String[]{String.valueOf(albumId)});
         db.close();
     }
+
 
     // Thêm ảnh vào album
     public void addPhotoToAlbum(int photoId, int albumId) {
@@ -194,7 +267,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                 "LEFT JOIN " + TABLE_PHOTO_IN_ALBUM + " pi " +
                 "ON a." + COLUMN_ALBUM_ID + " = pi." + COLUMN_ALBUM_ID + " " +
                 "LEFT JOIN " + TABLE_PHOTOS + " p " + // Kết nối bảng photos để lấy file_path
-                "ON pi." + COLUMN_ID + " = p." + COLUMN_ID + " " +
+                "ON pi." + COLUMN_ID + " = p." + COLUMN_ID +
+                " WHERE " + COLUMN_IS_HIDDEN + " != 1" + " " +
                 "GROUP BY a." + COLUMN_ALBUM_ID;
 
 
@@ -249,7 +323,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     public List<String> getAllPhotoPaths() {
         List<String> photoPaths = new ArrayList<>();
         SQLiteDatabase db = this.getReadableDatabase();
-        String query = "SELECT " + COLUMN_FILE_PATH + " FROM " + TABLE_PHOTOS;
+        String query = "SELECT " + COLUMN_FILE_PATH + " FROM " + TABLE_PHOTOS +
+                " WHERE " + COLUMN_IS_HIDDEN + " != 1";
         Cursor cursor = db.rawQuery(query, null);
 
         if (cursor.moveToFirst()) {
@@ -266,7 +341,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     public List<String> getFavoritePhotoPaths() {
         List<String> photoPaths = new ArrayList<>();
         SQLiteDatabase db = this.getReadableDatabase();
-        String query = "SELECT " + COLUMN_FILE_PATH + " FROM " + TABLE_PHOTOS + " WHERE " + COLUMN_IS_FAVOR + " = 1";
+        String query = "SELECT " + COLUMN_FILE_PATH + " FROM " + TABLE_PHOTOS + " WHERE " + COLUMN_IS_FAVOR + " = 1 AND " + COLUMN_IS_HIDDEN + " != 1";
         Cursor cursor = db.rawQuery(query, null);
 
         if (cursor.moveToFirst()) {
@@ -278,6 +353,41 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         cursor.close();
         return photoPaths;
     }
+
+    // Lấy ảnh yêu thích
+    public List<String> getHiddenPhotoPaths() {
+        List<String> photoPaths = new ArrayList<>();
+        SQLiteDatabase db = this.getReadableDatabase();
+        String query = "SELECT " + COLUMN_FILE_PATH + " FROM " + TABLE_PHOTOS + " WHERE " + COLUMN_IS_HIDDEN + " = 1";
+        Cursor cursor = db.rawQuery(query, null);
+
+        if (cursor.moveToFirst()) {
+            do {
+                String filePath = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_FILE_PATH));
+                photoPaths.add(filePath);
+            } while (cursor.moveToNext());
+        }
+        cursor.close();
+        return photoPaths;
+    }
+
+    public void deletePhotoFromAlbum(int photoId, int albumId) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        try {
+            // Xóa ảnh khỏi album dựa vào id của ảnh và album
+            int rowsAffected = db.delete(TABLE_PHOTO_IN_ALBUM,
+                    COLUMN_ID + "=? AND " + COLUMN_ALBUM_ID + "=?",
+                    new String[]{String.valueOf(photoId), String.valueOf(albumId)});
+
+            if (rowsAffected > 0) {
+                // Cập nhật số lượng ảnh trong album nếu cần thiết
+                updatePhotoCount(albumId);
+            }
+        } finally {
+            db.close();
+        }
+    }
+
 
     public void deletePhoto(int id) {
         SQLiteDatabase db = this.getWritableDatabase();
@@ -358,12 +468,46 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         return isFavorited;
     }
 
+    // Kiểm tra trạng thái yêu thích
+    public boolean getPhotoHideStatus(String filePath) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        boolean isHidden = false;
+
+        Cursor cursor = db.query(TABLE_PHOTOS, new String[]{COLUMN_IS_HIDDEN},
+                COLUMN_FILE_PATH + " = ?", new String[]{filePath},
+                null, null, null);
+
+        if (cursor != null && cursor.moveToFirst()) {
+            isHidden = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_IS_HIDDEN)) == 1;
+            cursor.close();
+        }
+        db.close();
+        return isHidden;
+    }
+
     public int getTotalFavoritedPhotos() {
         SQLiteDatabase db = this.getReadableDatabase();
         int totalFavorited = 0;
 
         // Truy vấn để đếm số lượng ảnh yêu thích
-        String query = "SELECT COUNT(*) FROM " + TABLE_PHOTOS + " WHERE " + COLUMN_IS_FAVOR + " = 1";
+        String query = "SELECT COUNT(*) FROM " + TABLE_PHOTOS + " WHERE " + COLUMN_IS_FAVOR + " = 1 AND " + COLUMN_IS_HIDDEN + " != 1";
+        Cursor cursor = db.rawQuery(query, null);
+
+        // Nếu có kết quả, lấy giá trị đầu tiên
+        if (cursor != null && cursor.moveToFirst()) {
+            totalFavorited = cursor.getInt(0);
+            cursor.close();
+        }
+        db.close();
+        return totalFavorited;
+    }
+
+    public int getTotalHiddenPhotos() {
+        SQLiteDatabase db = this.getReadableDatabase();
+        int totalFavorited = 0;
+
+        // Truy vấn để đếm số lượng ảnh yêu thích
+        String query = "SELECT COUNT(*) FROM " + TABLE_PHOTOS + " WHERE " + COLUMN_IS_HIDDEN + " = 1";
         Cursor cursor = db.rawQuery(query, null);
 
         // Nếu có kết quả, lấy giá trị đầu tiên
@@ -407,6 +551,48 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         db.close();
     }
 
+    // Cập nhật trạng thái yêu thích
+    public void updatePhotoHiddenStatus(String filePath, boolean isHidden) {
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        // Cập nhật trạng thái ẩn của ảnh
+        ContentValues values = new ContentValues();
+        values.put(COLUMN_IS_HIDDEN, isHidden ? 1 : 0);
+        db.update(TABLE_PHOTOS, values, COLUMN_FILE_PATH + " = ?", new String[]{filePath});
+
+        // Lấy ID của ảnh vừa được cập nhật
+        String query = "SELECT " + COLUMN_ID + " FROM " + TABLE_PHOTOS + " WHERE " + COLUMN_FILE_PATH + " = ?";
+        Cursor cursor = db.rawQuery(query, new String[]{filePath});
+
+        if (cursor.moveToFirst()) {
+            int photoId = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_ID));
+
+            // Lấy danh sách album chứa ảnh này
+            query = "SELECT " + COLUMN_ALBUM_ID + " FROM " + TABLE_PHOTO_IN_ALBUM + " WHERE " + COLUMN_ID + " = ?";
+            Cursor albumCursor = db.rawQuery(query, new String[]{String.valueOf(photoId)});
+
+            while (albumCursor.moveToNext()) {
+                int albumId = albumCursor.getInt(albumCursor.getColumnIndexOrThrow(COLUMN_ALBUM_ID));
+                updatePhotoCount(albumId); // Cập nhật số lượng ảnh trong album
+            }
+            albumCursor.close();
+        }
+        cursor.close();
+        db.close();
+    }
+
+
+    // Cập nhật đường dẫn ảnh (imagePath)
+    public void updatePhotoPath(String oldFilePath, String newFilePath) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(COLUMN_FILE_PATH, newFilePath); // Đường dẫn mới
+
+        db.update(TABLE_PHOTOS, values, COLUMN_FILE_PATH + " = ?", new String[]{oldFilePath});
+        db.close();
+    }
+
+
     // Kiểm tra ảnh đã tồn tại
     public boolean isPhotoExists(String filePath) {
         SQLiteDatabase db = this.getReadableDatabase();
@@ -428,7 +614,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                     "FROM " + TABLE_PHOTOS + " " +
                     "INNER JOIN " + TABLE_PHOTO_IN_ALBUM + " " +
                     "ON " + TABLE_PHOTOS + "." + COLUMN_ID + " = " + TABLE_PHOTO_IN_ALBUM + "." + COLUMN_ID + " " +
-                    "WHERE " + TABLE_PHOTO_IN_ALBUM + "." + COLUMN_ALBUM_ID + " = ?";
+                    "WHERE " + TABLE_PHOTO_IN_ALBUM + "." + COLUMN_ALBUM_ID + " = ? AND " + COLUMN_IS_HIDDEN + " != 1";
             cursor = db.rawQuery(query, new String[]{String.valueOf(albumId)});
 
             // Thêm các đường dẫn ảnh vào danh sách
@@ -466,7 +652,21 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     public String getFirstFavoritePhotoPath() {
         String filePath = null;
         SQLiteDatabase db = this.getReadableDatabase();
-        String query = "SELECT " + COLUMN_FILE_PATH + " FROM " + TABLE_PHOTOS + " WHERE " + COLUMN_IS_FAVOR + " = 1 LIMIT 1";
+        String query = "SELECT " + COLUMN_FILE_PATH + " FROM " + TABLE_PHOTOS + " WHERE " + COLUMN_IS_FAVOR + " = 1 AND " + COLUMN_IS_HIDDEN + " != 1 LIMIT 1";
+        Cursor cursor = db.rawQuery(query, null);
+
+        if (cursor.moveToFirst()) {
+            filePath = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_FILE_PATH));
+        }
+        cursor.close();
+        return filePath;
+    }
+
+    // Lấy ảnh đầu tiên trong ảnh bị ẩn
+    public String getFirstHiddenPhotoPath() {
+        String filePath = null;
+        SQLiteDatabase db = this.getReadableDatabase();
+        String query = "SELECT " + COLUMN_FILE_PATH + " FROM " + TABLE_PHOTOS + " WHERE "  + COLUMN_IS_HIDDEN + " = 1 LIMIT 1";
         Cursor cursor = db.rawQuery(query, null);
 
         if (cursor.moveToFirst()) {

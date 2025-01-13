@@ -142,6 +142,30 @@ public class LoadImageFromDevice {
         });
     }
 
+    // Lấy ảnh yêu thích từ database và hiển thị lên RecyclerView
+    public void loadImagesHiddenFromDatabase(Context context, List<String> ds, ImageAdapter imageAdapter, RecyclerView recyclerView) {
+        executorService.execute(() -> {
+            try {
+                ds.clear();
+                List<String> photoPaths = databaseHandler.getHiddenPhotoPaths();
+                ds.addAll(photoPaths);
+
+                uiHandler.post(() -> {
+                    if (recyclerView != null) {
+                        //recyclerView.setLayoutManager(new LinearLayoutManager(context));
+                        imageAdapter.setDs(context, ds);
+                        recyclerView.setAdapter(imageAdapter);
+                    } else {
+                        Log.e("LoadImageFromDevice", "recyclerView null");
+                    }
+                });
+            } catch (Exception e) {
+                Log.e("LoadImageFromDevice", "Lỗi khi loadImagesFavoriteFromDatabase(): " + e.getMessage());
+                e.printStackTrace();
+            }
+        });
+    }
+
     // Lấy ảnh theo album từ database và hiển thị lên RecyclerView
     public void loadImagesInAlbumFromDatabase(Context context, List<String> ds, ImageAdapter imageAdapter, RecyclerView recyclerView, int id) {
         executorService.execute(() -> {

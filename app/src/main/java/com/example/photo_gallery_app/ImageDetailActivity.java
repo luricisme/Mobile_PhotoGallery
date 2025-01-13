@@ -3,12 +3,16 @@
     import android.app.Dialog;
     import android.app.RecoverableSecurityException;
     import android.content.ContentResolver;
+    import android.content.ContentValues;
     import android.content.Intent;
     import android.content.IntentSender;
     import android.database.Cursor;
+    import android.media.MediaScannerConnection;
     import android.net.Uri;
     import android.os.Bundle;
+    import android.os.Environment;
     import android.provider.MediaStore;
+    import android.util.Log;
     import android.view.Menu;
     import android.view.MenuItem;
     import android.view.View;
@@ -22,11 +26,13 @@
     import androidx.appcompat.app.AlertDialog;
     import androidx.appcompat.app.AppCompatActivity;
     import androidx.appcompat.widget.Toolbar;
+    import androidx.loader.content.CursorLoader;
     import androidx.localbroadcastmanager.content.LocalBroadcastManager;
     import androidx.viewpager2.widget.ViewPager2;
 
     import com.github.chrisbanes.photoview.PhotoView;
 
+    import java.io.File;
     import java.text.SimpleDateFormat;
     import java.util.ArrayList;
     import java.util.Date;
@@ -35,6 +41,7 @@
     public class ImageDetailActivity extends AppCompatActivity {
         private static final int REQUEST_CODE_PERMISSION = 1;
         private boolean isFavorited = false; // Trạng thái ban đầu
+        private boolean isHidden = false; // Trạng thái ban đầu
         private DatabaseHandler databaseHandler;
 //        private ImageView imageView;
         private ImageButton btnFavorite, btnEdit, btnShare, btnDelete;
@@ -43,7 +50,7 @@
         private ViewPager2 viewPager;
         private List<String> imagePaths = new ArrayList<>();
         private String currentImagePath; // Đường dẫn của ảnh chọn vô (từ activity trước - cố định)
-        private int currentPosition; // Vị trí hiện tại (khi lướt qua lại sẽ cập nhật - code bên dưới)
+        private int currentPosition = 0; // Vị trí hiện tại (khi lướt qua lại sẽ cập nhật - code bên dưới)
 
         @Override
         protected void onCreate(Bundle savedInstanceState) {
@@ -76,9 +83,13 @@
             imagePaths = intent.getStringArrayListExtra("imagePaths");  // Lưu tất cả đường dẫn ảnh
             currentImagePath = intent.getStringExtra("currentImagePath");  // Đường dẫn ảnh đang được chọn
 
+
             if (imagePaths != null && !imagePaths.isEmpty()) {
                 // Xác định vị trí ảnh hiện tại
                 currentPosition = imagePaths.indexOf(currentImagePath);
+
+
+                //Toast.makeText(ImageDetailActivity.this, String.valueOf(imagePaths.size()), Toast.LENGTH_SHORT).show();
 
                 // Thiết lập Adapter cho ViewPager2
                 ImagePagerAdapter adapter = new ImagePagerAdapter(this, imagePaths);
@@ -140,6 +151,9 @@
                 String imagePath = imagePaths.get(currentPosition);
                 isFavorited = databaseHandler.getPhotoFavorStatus(imagePath);
                 updateFavorIcon(btnFavorite, isFavorited);
+
+
+                isHidden= databaseHandler.getPhotoHideStatus(imagePath);
 
                 // Xử lý sự kiện click nút "Favor" - Lần đầu chọn
                 btnFavorite.setOnClickListener(v -> {
@@ -251,15 +265,112 @@
         @Override
         public boolean onCreateOptionsMenu(Menu menu) {
             getMenuInflater().inflate(R.menu.toolbar_detailimage, menu); // toolbar_menu là tên file XML của menu
+            MenuItem hideItem = menu.findItem(R.id.hide);
+            if (isHidden) {
+                hideItem.setTitle("Show");
+            } else {
+                hideItem.setTitle("Hide");
+            }
+
             return true;
         }
 
         @Override
         public boolean onOptionsItemSelected(MenuItem item) {
             if (item.getItemId() == R.id.hide) {
-                // Xử lý sự kiện "Hide"
+                String imagePath = imagePaths.get(currentPosition); // Đường dẫn hiện tại
+                String realPath;
+                String newPath = "";
+
+                if (!isHidden) {
+                    // Lấy đường dẫn thực tế của ảnh
+                    Uri uriPath = Uri.parse(imagePath);
+                    realPath = getRealPathFromURI(uriPath);
+                } else {
+                    // Lấy đường dẫn từ database cho ảnh ẩn
+                    realPath = databaseHandler.getHiddenImagePathFromPhotoPath(imagePath);
+                }
+
+                if (realPath == null || realPath.isEmpty()) {
+                    Toast.makeText(this, "Không tìm thấy đường dẫn thực của ảnh", Toast.LENGTH_SHORT).show();
+                    return true;
+                }
+
+                File imageFile = new File(realPath);
+
+                if (!isHidden) {
+                    // Ẩn ảnh
+                    File hiddenDir = new File(Environment.getExternalStorageDirectory(), ".inome");
+
+                    if (!hiddenDir.exists()) hiddenDir.mkdirs();
+
+                    if (imageFile.exists()) {
+                        File hiddenImage = new File(hiddenDir, imageFile.getName());
+                        boolean success = imageFile.renameTo(hiddenImage);
+
+                        if (success) {
+                            newPath = hiddenImage.getAbsolutePath();
+                            databaseHandler.addHiddenImage(imagePath, newPath);
+                            databaseHandler.updatePhotoHiddenStatus(imagePath, true);
+
+                            // Xóa ảnh khỏi MediaStore
+                            getContentResolver().delete(
+                                    MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                                    MediaStore.Images.Media.DATA + "=?",
+                                    new String[]{imageFile.getAbsolutePath()}
+                            );
+
+                            Toast.makeText(this, "Ảnh đã được ẩn", Toast.LENGTH_SHORT).show();
+                        } else {
+                            Toast.makeText(this, "Không thể ẩn ảnh", Toast.LENGTH_SHORT).show();
+                        }
+                    } else {
+                        Toast.makeText(this, "Ảnh không tồn tại", Toast.LENGTH_SHORT).show();
+                    }
+                } else {
+                    // Hiển thị lại ảnh
+                    File hiddenDir = new File(Environment.getExternalStorageDirectory(), ".inome");
+                    File hiddenImage = new File(hiddenDir, imageFile.getName());
+
+                    if (hiddenImage.exists()) {
+                        File publicDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "MyAppPhotos");
+
+                        if (!publicDir.exists()) publicDir.mkdirs();
+
+                        File originalFile = new File(publicDir, hiddenImage.getName());
+                        boolean success = hiddenImage.renameTo(originalFile);
+
+                        if (success) {
+                            newPath = originalFile.getAbsolutePath();
+                            databaseHandler.deleteHiddenImage(imagePath);
+                            databaseHandler.updatePhotoHiddenStatus(imagePath, false);
+
+                            // Quét lại MediaStore để cập nhật
+                            MediaScannerConnection.scanFile(
+                                    this,
+                                    new String[]{originalFile.getAbsolutePath()},
+                                    null,
+                                    (path, uri) -> Log.d("MediaScanner", "File updated: " + path)
+                            );
+
+                            Toast.makeText(this, "Ảnh đã được hiển thị lại", Toast.LENGTH_SHORT).show();
+                        } else {
+                            Toast.makeText(this, "Không thể hiển thị lại ảnh", Toast.LENGTH_SHORT).show();
+                        }
+                    } else {
+                        Toast.makeText(this, "Ảnh không tồn tại trong thư mục ẩn", Toast.LENGTH_SHORT).show();
+                    }
+                }
+
+                // Cập nhật trạng thái trong cơ sở dữ liệu
+                //databaseHandler.updatePhotoPath(imagePath, newPath);
+
+                // Thoát hoặc cập nhật giao diện
+                onBackPressed();
                 return true;
-            } else if (item.getItemId() == R.id.info) {
+            }
+
+            else if (item.getItemId() == R.id.info) {
                 String[] projection = {
                         MediaStore.Images.Media._ID,
                         MediaStore.Images.Media.DISPLAY_NAME,
@@ -323,6 +434,17 @@
             }
             return super.onOptionsItemSelected(item);
         }
+        private String getRealPathFromURI(Uri contentUri) {
+            String[] proj = {MediaStore.Images.Media.DATA};
+            CursorLoader loader = new CursorLoader(this, contentUri, proj, null, null, null);
+            Cursor cursor = loader.loadInBackground();
+            int column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
+            cursor.moveToFirst();
+            String result = cursor.getString(column_index);
+            cursor.close();
+            return result;
+        }
+
 
         @Override
         protected void onActivityResult(int requestCode, int resultCode, Intent data) {

@@ -395,6 +395,11 @@ public class MainActivity extends AppCompatActivity implements MainCallbacks{
         loadImageFromDevice.loadImagesFavoriteFromDatabase(this, ds, imageAdapter, albumFragment.recyclerView);
     }
 
+    public void LoadImgInAlbumAsHide(){
+        //loadImageFromDevice.loadImagesFromDevice((this));
+        loadImageFromDevice.loadImagesHiddenFromDatabase(this, ds, imageAdapter, albumFragment.recyclerView);
+    }
+
     public void LoadImgInFavorite(){
         //loadImageFromDevice.loadImagesFromDevice((this));
         loadImageFromDevice.loadImagesFavoriteFromDatabase(this, ds, imageAdapter, favorFragment.recyclerView);
@@ -478,6 +483,12 @@ public class MainActivity extends AppCompatActivity implements MainCallbacks{
 
     @Override
     protected void onResume() {
+        //Toast.makeText(this, "tt", Toast.LENGTH_SHORT).show();
+        if (getSupportFragmentManager().findFragmentById(R.id.frame_layout) instanceof AlbumFragment) {
+            //Toast.makeText(this, "album", Toast.LENGTH_SHORT).show();
+            albumFragment.loadimg();
+            albumFragment.setLayout();
+        }
         super.onResume();
         loadImageFromDevice.loadImagesFromDevice((this));
     }

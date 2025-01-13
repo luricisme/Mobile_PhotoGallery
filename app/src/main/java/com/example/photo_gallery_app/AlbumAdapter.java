@@ -71,7 +71,7 @@ public class AlbumAdapter extends RecyclerView.Adapter<AlbumAdapter.AlbumViewHol
         }
 
         // Kiểm tra nếu album là "All Photos" hoặc "Favorites"
-        if (album.getName().equals("All Photos") || album.getName().equals("Favorites")) {
+        if (album.getName().equals("All Photos") || album.getName().equals("Favorites") ||  album.getName().equals("Hidden")) {
             holder.checkbox.setVisibility(View.GONE); // Ẩn checkbox nếu là "All Photos" hoặc "Favorites"
         } else {
             if (isSelectionMode) {

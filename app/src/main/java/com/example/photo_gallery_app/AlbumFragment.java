@@ -69,6 +69,7 @@ public class AlbumFragment extends Fragment {
         albumList = new ArrayList<>();
         albumList.add(new Album(-1, "All Photos", databaseHandler.getTotalPhoto(), databaseHandler.getFirstPhotoPath())); // "All Photos" album
         albumList.add(new Album(-2, "Favorites", databaseHandler.getTotalFavoritedPhotos(), databaseHandler.getFirstFavoritePhotoPath()));
+        albumList.add(new Album(-3, "Hidden", databaseHandler.getTotalHiddenPhotos(), databaseHandler.getFirstHiddenPhotoPath()));
         albumList.addAll(databaseHandler.getAllAlbumsWithFirstPhoto()); // Fetch all albums from SQLite
 
         // Setup AlbumAdapter with listener for item clicks
@@ -135,6 +136,9 @@ public class AlbumFragment extends Fragment {
         }
         else if (alnumid == -2){
             showFavorPhotos();
+        }
+        else if (alnumid == -3){
+            showHidePhotos();
         }
         else {
             isViewingPhotos = true;
@@ -256,6 +260,8 @@ public class AlbumFragment extends Fragment {
             showAllPhotos(); // Show all photos when "All Photos" album is clicked
         } else if (album.getId() == -2) {
             showFavorPhotos(); // Show all photos when "Favorite" album is clicked
+        } else if (album.getId() == -3) {
+            showHidePhotos(); // Show all photos when "Hide" album is clicked
         } else {
             showPhotosInAlbum(album); // Show photos in selected album
         }
@@ -284,6 +290,19 @@ public class AlbumFragment extends Fragment {
 
         if (mainActivity != null) {
             mainActivity.LoadImgInAlbumAsFavor();
+        }
+    }
+
+    private void showHidePhotos() {
+        isViewingPhotos = true;
+        btnAddAlbum.setVisibility(View.GONE);
+        btnBack.setVisibility(View.VISIBLE);
+        btnLayout.setVisibility(View.VISIBLE);
+
+        recyclerView.setAdapter(null);
+
+        if (mainActivity != null) {
+            mainActivity.LoadImgInAlbumAsHide();
         }
     }
 
@@ -382,6 +401,7 @@ public class AlbumFragment extends Fragment {
             albumList.clear();
             albumList.add(new Album(-1, "All Photos", databaseHandler.getTotalPhoto(), databaseHandler.getFirstPhotoPath())); // "All Photos" album
             albumList.add(new Album(-2, "Favorites", databaseHandler.getTotalFavoritedPhotos(), databaseHandler.getFirstFavoritePhotoPath()));
+            albumList.add(new Album(-3, "Hidden", databaseHandler.getTotalHiddenPhotos(), databaseHandler.getFirstHiddenPhotoPath()));
             albumList.addAll(databaseHandler.getAllAlbumsWithFirstPhoto()); // Fetch all albums from SQLite
             albumAdapter.notifyDataSetChanged();
 
@@ -447,6 +467,7 @@ public class AlbumFragment extends Fragment {
         albumList.clear();
         albumList.add(new Album(-1, "All Photos", databaseHandler.getTotalPhoto(), databaseHandler.getFirstPhotoPath())); // "All Photos" album
         albumList.add(new Album(-2, "Favorites", databaseHandler.getTotalFavoritedPhotos(), databaseHandler.getFirstFavoritePhotoPath()));
+        albumList.add(new Album(-3, "Hidden", databaseHandler.getTotalHiddenPhotos(), databaseHandler.getFirstHiddenPhotoPath()));
         albumList.addAll(databaseHandler.getAllAlbumsWithFirstPhoto()); // Fetch all albums from SQLite
 
         albumAdapter.setList(albumList);
