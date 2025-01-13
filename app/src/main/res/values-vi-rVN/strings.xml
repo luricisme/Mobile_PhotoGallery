@@ -28,6 +28,7 @@
     <string name="bottom_menu_favorite">Yêu thích</string>
     <string name="bottom_menu_more">Thêm</string>
     <string name="detail_hide">Ẩn</string>
+    <string name="detail_show">Hiện</string>
     <string name="detail_info">Thông tin</string>
     <string name="toolbar_select">Chọn</string>
 
@@ -43,4 +44,19 @@
     <string name="dialog_message_delfromalbum">Bạn có chắc chắn muốn xóa hình này khỏi album không?</string>
     <string name="dialog_title_addfromalbum">Xác nhận thêm</string>
     <string name="dialog_message_addfromalbum">Bạn có chắc chắn muốn thêm hình này vào album không?</string>
+
+    <string name="btn_confirm">Xác nhận</string>
+    <string name="btn_cancel">Hủy</string>
+    <string name="old_password">Mật khẩu cũ</string>
+    <string name="new_password">Mật khẩu mới</string>
+    <string name="confirm_password">Nhập lại mật khẩu</string>
+    <string name="title_change_password">Thay đổi mật khẩu</string>
+
+    <string name="in_old_password">Mật khẩu cũ không đúng</string>
+    <string name="fit_new_password">Mật khẩu mới không khớp</string>
+    <string name="change_success">Thay đổi mật khẩu thành công</string>
+    <string name="change_fail">Thay đổi mật khẩu thất bại</string>
+
+    <string name="fill_password">Nhật mật khẩu</string>
+    <string name="title_fill_password">Nhập mật khẩu để mở album ẩn</string>
 </resources>

@@ -267,9 +267,9 @@
             getMenuInflater().inflate(R.menu.toolbar_detailimage, menu); // toolbar_menu là tên file XML của menu
             MenuItem hideItem = menu.findItem(R.id.hide);
             if (isHidden) {
-                hideItem.setTitle("Show");
+                hideItem.setTitle(getString(R.string.detail_show));
             } else {
-                hideItem.setTitle("Hide");
+                hideItem.setTitle(getString(R.string.detail_hide));
             }
 
             return true;

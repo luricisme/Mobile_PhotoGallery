@@ -27,6 +27,7 @@
     <string name="bottom_menu_favorite">Favorite</string>
     <string name="bottom_menu_more">More</string>
     <string name="detail_hide">Hide</string>
+    <string name="detail_show">Show</string>
     <string name="detail_info">Information</string>
     <string name="toolbar_select">Select</string>
 
@@ -42,4 +43,21 @@
     <string name="dialog_message_delfromalbum">Are you sure you want to remove this photo?</string>
     <string name="dialog_title_addfromalbum">Confirm add</string>
     <string name="dialog_message_addfromalbum">Are you sure you want to add this photo?</string>
+
+    <string name="btn_confirm">Confirm</string>
+    <string name="btn_cancel">Cancel</string>
+    <string name="old_password">Old password</string>
+    <string name="new_password">New password</string>
+    <string name="confirm_password">Confirm password</string>
+    <string name="title_change_password">Change pasword</string>
+
+    <string name="in_old_password">Incorrect old password</string>
+    <string name="fit_new_password">Incorrect confirm password</string>
+    <string name="change_success">Change password successfully</string>
+    <string name="change_fail">Change password </string>
+
+    <string name="fill_password">Input password</string>
+    <string name="title_fill_password">Input password to open hidden album</string>
+
+
 </resources>

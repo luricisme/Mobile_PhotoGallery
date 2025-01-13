@@ -61,7 +61,7 @@ public class MoreFragment extends Fragment {
                                 main.onMsgFromFragToMain("MORE-FRAG", "LANGUAGE_" + language);
                             }
                         })
-                        .setNegativeButton("Hủy", null) // Nút hủy
+                        .setNegativeButton(getString(R.string.btn_cancel), null) // Nút hủy
                         .create();
 
                 alertDialog.show();
@@ -85,15 +85,15 @@ public class MoreFragment extends Fragment {
 
         // Tạo các ô nhập mật khẩu
         EditText inputOldPassword = new EditText(getContext());
-        inputOldPassword.setHint("Mật khẩu cũ");
+        inputOldPassword.setHint(getString(R.string.old_password));
         inputOldPassword.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
 
         EditText inputNewPassword = new EditText(getContext());
-        inputNewPassword.setHint("Mật khẩu mới");
+        inputNewPassword.setHint(getString(R.string.new_password));
         inputNewPassword.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
 
         EditText inputConfirmPassword = new EditText(getContext());
-        inputConfirmPassword.setHint("Xác nhận mật khẩu mới");
+        inputConfirmPassword.setHint(getString(R.string.confirm_password));
         inputConfirmPassword.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
 
         // Thêm các ô nhập vào layout
@@ -103,10 +103,10 @@ public class MoreFragment extends Fragment {
 
         // Tạo dialog
         AlertDialog alertDialog = new AlertDialog.Builder(getContext())
-                .setTitle("Đổi mật khẩu")
+                .setTitle(getString(R.string.title_change_password))
                 .setView(layout)
-                .setPositiveButton("Xác nhận", null) // Xử lý sau khi show
-                .setNegativeButton("Hủy", (dialog, which) -> dialog.dismiss())
+                .setPositiveButton(getString(R.string.btn_confirm), null) // Xử lý sau khi show
+                .setNegativeButton(getString(R.string.btn_cancel), (dialog, which) -> dialog.dismiss())
                 .create();
 
         alertDialog.show();
@@ -135,23 +135,23 @@ public class MoreFragment extends Fragment {
 
             // Kiểm tra mật khẩu cũ
             if (!oldPassword.equals(storedPassword)) {
-                Toast.makeText(getContext(), "Mật khẩu cũ không đúng", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), getString(R.string.in_old_password), Toast.LENGTH_SHORT).show();
                 return;
             }
 
             // Kiểm tra mật khẩu mới và xác nhận
             if (newPassword.isEmpty() || !newPassword.equals(confirmPassword)) {
-                Toast.makeText(getContext(), "Mật khẩu mới không khớp", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), getString(R.string.fit_new_password), Toast.LENGTH_SHORT).show();
                 return;
             }
 
             // Cập nhật mật khẩu mới
             boolean isUpdated = db.updateHiddenAlbumPassword(newPassword);
             if (isUpdated) {
-                Toast.makeText(getContext(), "Đổi mật khẩu thành công", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), getString(R.string.change_success), Toast.LENGTH_SHORT).show();
                 alertDialog.dismiss();
             } else {
-                Toast.makeText(getContext(), "Đổi mật khẩu thất bại", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), getString(R.string.change_fail), Toast.LENGTH_SHORT).show();
             }
         });
     }

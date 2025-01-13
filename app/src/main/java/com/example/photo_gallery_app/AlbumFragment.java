@@ -283,16 +283,16 @@ public class AlbumFragment extends Fragment {
 
         // Tạo ô nhập mật khẩu
         final EditText input = new EditText(getContext());
-        input.setHint("Nhập mật khẩu"); // Thêm gợi ý
+        input.setHint(getString(R.string.fill_password)); // Thêm gợi ý
         input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
         layout.addView(input); // Thêm ô nhập mật khẩu vào layout
 
         // Tạo dialog
         AlertDialog alertDialog = new AlertDialog.Builder(getContext())
-                .setTitle("Nhập mật khẩu để mở album ẩn")
+                .setTitle(getString(R.string.title_fill_password))
                 .setView(layout)
-                .setPositiveButton("OK", null) // Xử lý sự kiện sau khi dialog hiển thị
-                .setNegativeButton("Hủy", (dialog, which) -> dialog.dismiss())
+                .setPositiveButton(getString(R.string.popup_mask), null) // Xử lý sự kiện sau khi dialog hiển thị
+                .setNegativeButton(getString(R.string.btn_cancel), (dialog, which) -> dialog.dismiss())
                 .create();
 
         // Hiển thị dialog
