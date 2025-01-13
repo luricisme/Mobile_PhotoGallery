@@ -1,16 +1,19 @@
 package com.example.photo_gallery_app;
 
 import android.content.DialogInterface;
+import android.graphics.Color;
 import android.os.Bundle;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
+import android.text.InputType;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -69,7 +72,87 @@ public class MoreFragment extends Fragment {
                 }
             }
         });
+        txtChangePass.setOnClickListener(v -> showChangePasswordDialog());
 
         return layout_more;
+    }
+
+    private void showChangePasswordDialog() {
+        // Tạo layout cho dialog
+        LinearLayout layout = new LinearLayout(getContext());
+        layout.setOrientation(LinearLayout.VERTICAL);
+        layout.setPadding(50, 40, 50, 40);
+
+        // Tạo các ô nhập mật khẩu
+        EditText inputOldPassword = new EditText(getContext());
+        inputOldPassword.setHint("Mật khẩu cũ");
+        inputOldPassword.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+
+        EditText inputNewPassword = new EditText(getContext());
+        inputNewPassword.setHint("Mật khẩu mới");
+        inputNewPassword.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+
+        EditText inputConfirmPassword = new EditText(getContext());
+        inputConfirmPassword.setHint("Xác nhận mật khẩu mới");
+        inputConfirmPassword.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+
+        // Thêm các ô nhập vào layout
+        layout.addView(inputOldPassword);
+        layout.addView(inputNewPassword);
+        layout.addView(inputConfirmPassword);
+
+        // Tạo dialog
+        AlertDialog alertDialog = new AlertDialog.Builder(getContext())
+                .setTitle("Đổi mật khẩu")
+                .setView(layout)
+                .setPositiveButton("Xác nhận", null) // Xử lý sau khi show
+                .setNegativeButton("Hủy", (dialog, which) -> dialog.dismiss())
+                .create();
+
+        alertDialog.show();
+
+        Button negativeButton = alertDialog.getButton(AlertDialog.BUTTON_NEGATIVE);
+
+        if (negativeButton != null) {
+            negativeButton.setTextColor(Color.BLACK); // Đổi màu chữ nút Hủy
+            negativeButton.setBackgroundColor(Color.WHITE); // Đổi màu nền nút Hủy
+            negativeButton.setPadding(20, 0, 20, 10); // Thêm padding cho nút Hủy
+        }
+
+        // Xử lý sự kiện cho nút xác nhận
+        Button positiveButton = alertDialog.getButton(AlertDialog.BUTTON_POSITIVE);
+        positiveButton.setTextColor(Color.BLACK); // Đổi màu chữ nút OK
+        positiveButton.setBackgroundColor(Color.WHITE); // Đổi màu nền nút OK
+        positiveButton.setPadding(20, 0, 20, 10); // Thêm padding cho nút Hủy
+
+        positiveButton.setOnClickListener(v -> {
+            String oldPassword = inputOldPassword.getText().toString().trim();
+            String newPassword = inputNewPassword.getText().toString().trim();
+            String confirmPassword = inputConfirmPassword.getText().toString().trim();
+
+            DatabaseHandler db = new DatabaseHandler(requireContext());
+            String storedPassword = db.getHiddenAlbumPassword();
+
+            // Kiểm tra mật khẩu cũ
+            if (!oldPassword.equals(storedPassword)) {
+                Toast.makeText(getContext(), "Mật khẩu cũ không đúng", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            // Kiểm tra mật khẩu mới và xác nhận
+            if (newPassword.isEmpty() || !newPassword.equals(confirmPassword)) {
+                Toast.makeText(getContext(), "Mật khẩu mới không khớp", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            // Cập nhật mật khẩu mới
+            boolean isUpdated = db.updateHiddenAlbumPassword(newPassword);
+            if (isUpdated) {
+                Toast.makeText(getContext(), "Đổi mật khẩu thành công", Toast.LENGTH_SHORT).show();
+                alertDialog.dismiss();
+            } else {
+                Toast.makeText(getContext(), "Đổi mật khẩu thất bại", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 }

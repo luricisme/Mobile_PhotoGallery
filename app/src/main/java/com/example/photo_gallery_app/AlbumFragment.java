@@ -10,12 +10,14 @@ import android.os.Bundle;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 
+import android.text.InputType;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import androidx.recyclerview.widget.GridLayoutManager;
@@ -78,7 +80,6 @@ public class AlbumFragment extends Fragment {
             public void onItemClick(Album album) {
                 onAlbumClicked(album);
                 alnumid = album.getId();
-                switchLayout(false);
             }
         });
 
@@ -138,7 +139,7 @@ public class AlbumFragment extends Fragment {
             showFavorPhotos();
         }
         else if (alnumid == -3){
-            showHidePhotos();
+            showPasswordDialog();
         }
         else {
             isViewingPhotos = true;
@@ -262,14 +263,78 @@ public class AlbumFragment extends Fragment {
     private void onAlbumClicked(Album album) {
         if (album.getId() == -1) {
             showAllPhotos(); // Show all photos when "All Photos" album is clicked
+            switchLayout(false);
         } else if (album.getId() == -2) {
             showFavorPhotos(); // Show all photos when "Favorite" album is clicked
+            switchLayout(false);
         } else if (album.getId() == -3) {
-            showHidePhotos(); // Show all photos when "Hide" album is clicked
+            showPasswordDialog(); // Show all photos when "Hide" album is clicked
         } else {
             showPhotosInAlbum(album); // Show photos in selected album
+            switchLayout(false);
         }
     }
+
+    private void showPasswordDialog() {
+        // Tạo layout cho dialog
+        LinearLayout layout = new LinearLayout(getContext());
+        layout.setOrientation(LinearLayout.VERTICAL);
+        layout.setPadding(50, 40, 50, 40); // Padding cho layout chính
+
+        // Tạo ô nhập mật khẩu
+        final EditText input = new EditText(getContext());
+        input.setHint("Nhập mật khẩu"); // Thêm gợi ý
+        input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+        layout.addView(input); // Thêm ô nhập mật khẩu vào layout
+
+        // Tạo dialog
+        AlertDialog alertDialog = new AlertDialog.Builder(getContext())
+                .setTitle("Nhập mật khẩu để mở album ẩn")
+                .setView(layout)
+                .setPositiveButton("OK", null) // Xử lý sự kiện sau khi dialog hiển thị
+                .setNegativeButton("Hủy", (dialog, which) -> dialog.dismiss())
+                .create();
+
+        // Hiển thị dialog
+        alertDialog.show();
+
+        // Tùy chỉnh giao diện nút
+        Button positiveButton = alertDialog.getButton(AlertDialog.BUTTON_POSITIVE);
+        Button negativeButton = alertDialog.getButton(AlertDialog.BUTTON_NEGATIVE);
+
+        if (negativeButton != null) {
+            negativeButton.setTextColor(Color.BLACK); // Đổi màu chữ nút Hủy
+            negativeButton.setBackgroundColor(Color.WHITE); // Đổi màu nền nút Hủy
+            negativeButton.setPadding(20, 10, 20, 10); // Thêm padding cho nút Hủy
+        }
+
+        if (positiveButton != null) {
+            positiveButton.setTextColor(Color.BLACK); // Đổi màu chữ nút OK
+            positiveButton.setBackgroundColor(Color.WHITE); // Đổi màu nền nút OK
+            positiveButton.setPadding(20, 10, 20, 10); // Thêm padding cho nút OK
+
+            positiveButton.setOnClickListener(v -> {
+                String enteredPassword = input.getText().toString().trim();
+                DatabaseHandler db = new DatabaseHandler(requireContext());
+
+                // Lấy mật khẩu lưu trữ
+                String storedPassword = db.getHiddenAlbumPassword();
+
+                if (storedPassword != null && storedPassword.equals(enteredPassword)) {
+                    // Mật khẩu đúng, hiển thị album ẩn
+                    showHidePhotos();
+                    alertDialog.dismiss();
+                } else {
+                    // Mật khẩu sai, hiển thị thông báo
+                    Toast.makeText(requireContext(), "Mật khẩu không đúng", Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
+    }
+
+
+
+
 
     private void showAllPhotos() {
         isViewingPhotos = true;

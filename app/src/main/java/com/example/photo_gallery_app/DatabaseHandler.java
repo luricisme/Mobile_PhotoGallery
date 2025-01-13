@@ -13,7 +13,7 @@ import java.util.List;
 
 public class DatabaseHandler extends SQLiteOpenHelper {
     private static final String DATABASE_NAME = "PhotoAlbum.db";
-    private static final int DATABASE_VERSION = 13;
+    private static final int DATABASE_VERSION = 14;
 
     // Table and columns (photos)
     private static final String TABLE_PHOTOS = "photos";
@@ -93,6 +93,15 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                 + "FOREIGN KEY (photo_id) REFERENCES photos (id)"
                 + ")";
         db.execSQL(CREATE_IMAGE_HIDDEN_TABLE);
+
+        String CREATE_SETTINGS_TABLE = "CREATE TABLE settings (" +
+                "keypass TEXT PRIMARY KEY, " +
+                "value TEXT)";
+        db.execSQL(CREATE_SETTINGS_TABLE);
+
+        // Thêm mật khẩu mặc định cho album ẩn
+        String INSERT_DEFAULT_PASSWORD = "INSERT INTO settings (keypass, value) VALUES ('hidden_album_password', '6868')";
+        db.execSQL(INSERT_DEFAULT_PASSWORD);
     }
 
     @Override
@@ -104,6 +113,40 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         db.execSQL("DROP TABLE IF EXISTS image_hidden");
         onCreate(db);
     }
+
+    public String getHiddenAlbumPassword() {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.query(
+                "settings",
+                new String[]{"value"},
+                "keypass = ?",
+                new String[]{"hidden_album_password"},
+                null,
+                null,
+                null
+        );
+
+        if (cursor != null && cursor.moveToFirst()) {
+            @SuppressLint("Range") String password = cursor.getString(cursor.getColumnIndex("value"));
+            cursor.close();
+            return password;
+        } else {
+            return null; // Nếu không tìm thấy mật khẩu
+        }
+    }
+
+
+    public boolean updateHiddenAlbumPassword(String newPassword) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put("value", newPassword); // Cập nhật giá trị mới cho cột "value"
+
+        int rowsAffected = db.update("settings", values, "keypass = ?", new String[]{"hidden_album_password"});
+
+        db.close();
+        return rowsAffected > 0; // Trả về true nếu có cập nhật thành công
+    }
+
 
     public void addHiddenImage(String imagePath, String hiddenUrl) {
         SQLiteDatabase db = this.getWritableDatabase();

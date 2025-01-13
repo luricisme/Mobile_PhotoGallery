@@ -466,13 +466,13 @@ public class MainActivity extends AppCompatActivity implements MainCallbacks{
                                 int imageId = db.getImageIdFromPath(imagePath);
                                 if (imageId != -1) {
                                     if (sta == 3){
-                                        Toast.makeText(context, "Favor", Toast.LENGTH_SHORT).show();
+                                        //Toast.makeText(context, "Favor", Toast.LENGTH_SHORT).show();
                                         db.updatePhotoFavorStatusByID(imageId, false);
                                     }
                                     else if (albumid > 0) {
                                         db.deletePhotoFromAlbum(imageId, albumid);
                                     } else if (albumid == -2) {
-                                        Toast.makeText(context, "Favor", Toast.LENGTH_SHORT).show();
+                                        //Toast.makeText(context, "Favor", Toast.LENGTH_SHORT).show();
                                         db.updatePhotoFavorStatusByID(imageId, false);
                                     } else if (albumid == -3) {
                                         String realPath = db.getHiddenImagePathFromPhotoPath(imagePath);
@@ -592,13 +592,13 @@ public class MainActivity extends AppCompatActivity implements MainCallbacks{
                                     if (albumId != -1) {
                                         for (String imagePath : selectedImages) {
                                             int imageId = db.getImageIdFromPath(imagePath);
-                                            Toast.makeText(context, "11111111", Toast.LENGTH_SHORT).show();
+                                            //Toast.makeText(context, "11111111", Toast.LENGTH_SHORT).show();
                                             if (imageId != -1) {
                                                 if (db.isPhotoInAlbum(imageId, albumId)) {
-                                                    Toast.makeText(context, "Ảnh \"" + imagePath + "\" đã nằm trong album.", Toast.LENGTH_SHORT).show();
+                                                    Toast.makeText(context, "Ảnh đã nằm trong album.", Toast.LENGTH_SHORT).show();
                                                 } else {
                                                     db.addPhotoToAlbum(imageId, albumId);
-                                                    Toast.makeText(context, "Đã thêm ảnh \"" + imagePath + "\" vào album.", Toast.LENGTH_SHORT).show();
+                                                    Toast.makeText(context, "Đã thêm ảnh vào album.", Toast.LENGTH_SHORT).show();
                                                 }
                                             }
                                         }
