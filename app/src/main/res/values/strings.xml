@@ -38,5 +38,6 @@
     <string name="lang_title">Select language</string>
     <string name="lang_eng">English</string>
     <string name="lang_vie">Vietnamese</string>
-
+    <string name="dialog_title_delfromalbum">Confirm remove</string>
+    <string name="dialog_message_delfromalbum">Are you sure you want to remove this photo?</string>
 </resources>

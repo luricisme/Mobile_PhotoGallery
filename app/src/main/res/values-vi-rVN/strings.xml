@@ -39,4 +39,6 @@
     <string name="lang_title">Chọn ngôn ngữ</string>
     <string name="lang_eng">Tiếng anh</string>
     <string name="lang_vie">Tiếng việt</string>
+    <string name="dialog_title_delfromalbum">Xác nhận xóa</string>
+    <string name="dialog_message_delfromalbum">Bạn có chắc chắn muốn xóa hình này khỏi album không?</string>
 </resources>

@@ -203,10 +203,37 @@ public class MainActivity extends AppCompatActivity implements MainCallbacks{
             }
             binding.bottomNavigationView.setSelectedItemId(currentMenuId);
         });
+
+        ImageButton btnDelFromAlbum = findViewById(R.id.btnDelFromAlbum);
+        btnDelFromAlbum.setOnClickListener(v -> {
+            Fragment currentFragment = getSupportFragmentManager().findFragmentById(R.id.frame_layout);
+            callHandleImageDelFromAlbum();
+
+            binding.bottomNavigationView.inflateMenu(R.menu.bottom_menu);
+            binding.bottomAppBar.setVisibility(View.VISIBLE);
+            binding.camera.setVisibility(View.VISIBLE);
+            binding.selectedBottom.setVisibility(View.GONE);
+
+            int currentMenuId = R.id.home;
+            if (currentFragment instanceof HomeFragment) {
+                currentMenuId = R.id.home;
+            } else if (currentFragment instanceof AlbumFragment) {
+                currentMenuId = R.id.album;
+            } else if (currentFragment instanceof FavoriteFragment) {
+                currentMenuId = R.id.favorite;
+            } else if(currentFragment instanceof MoreFragment){
+                currentMenuId = R.id.more;
+            }
+            binding.bottomNavigationView.setSelectedItemId(currentMenuId);
+        });
     }
 
     public void callHandleImageDeletion(){
         handleImageDeletion(albumFragment.recyclerView, this);
+    }
+
+    public void callHandleImageDelFromAlbum(){
+        handleImageDelFromAlbum(albumFragment.recyclerView, this);
     }
 
     @Override
@@ -217,18 +244,35 @@ public class MainActivity extends AppCompatActivity implements MainCallbacks{
         }
         if (item.getItemId() == R.id.select) {
             if (getSupportFragmentManager().findFragmentById(R.id.frame_layout) instanceof AlbumFragment) {
+                binding.selectedBottom.findViewById(R.id.btnAdd).setVisibility(View.GONE);
+
+                AlbumFragment albumFragment = (AlbumFragment) getSupportFragmentManager().findFragmentById(R.id.frame_layout);
+                if (albumFragment.isViewingPhotos()) {
+                    // Hiển thị nút DelFromAlbum nếu isViewingPhotos là true
+                    binding.selectedBottom.findViewById(R.id.btnDelFromAlbum).setVisibility(View.VISIBLE);
+                } else {
+                    // Ẩn nút DelFromAlbum nếu isViewingPhotos là false
+                    binding.selectedBottom.findViewById(R.id.btnDelFromAlbum).setVisibility(View.GONE);
+                }
                 albumFragment.handlerSelect();
             }
             if (getSupportFragmentManager().findFragmentById(R.id.frame_layout) instanceof HomeFragment) {
+                binding.selectedBottom.findViewById(R.id.btnDelFromAlbum).setVisibility(View.GONE);
+                binding.selectedBottom.findViewById(R.id.btnAdd).setVisibility(View.VISIBLE);
+
                 HomeFragment homeFragment = (HomeFragment) getSupportFragmentManager().findFragmentById(R.id.frame_layout);
                 homeFragment.enableSelectionMode(true);
                 //Toast.makeText(this, "Chế độ chọn ảnh được bật", Toast.LENGTH_SHORT).show();
             }
             if (getSupportFragmentManager().findFragmentById(R.id.frame_layout) instanceof FavoriteFragment) {
+                binding.selectedBottom.findViewById(R.id.btnDelFromAlbum).setVisibility(View.GONE);
+                binding.selectedBottom.findViewById(R.id.btnAdd).setVisibility(View.GONE);
+
                 FavoriteFragment favoriteFragment = (FavoriteFragment) getSupportFragmentManager().findFragmentById(R.id.frame_layout);
                 favoriteFragment.enableSelectionMode(true);
                 //Toast.makeText(this, "Chế độ chọn ảnh được bật", Toast.LENGTH_SHORT).show();
             }
+
             binding.bottomNavigationView.getMenu().clear();
             binding.bottomAppBar.setVisibility(View.GONE);
             binding.camera.setVisibility(View.GONE);
@@ -345,6 +389,65 @@ public class MainActivity extends AppCompatActivity implements MainCallbacks{
             dialog.show();
         }
     }
+
+
+    private void handleImageDelFromAlbum(RecyclerView recyclerView, Context context) {
+        RecyclerView.Adapter<?> adapter = recyclerView.getAdapter();
+        if (adapter instanceof ImageAdapter) {
+            ImageAdapter imageAdapter = (ImageAdapter) adapter;
+            List<String> selectedImages = imageAdapter.getSelectedImages();
+
+            if (selectedImages.isEmpty()) {
+                Toast.makeText(context, "Không có ảnh nào được chọn để xóa khỏi album", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            AlertDialog.Builder builder = new AlertDialog.Builder(context)
+                    .setTitle(getString(R.string.dialog_title_delfromalbum))
+                    .setMessage(getString(R.string.dialog_message_delfromalbum))
+                    .setPositiveButton(getString(R.string.positive_button), (dialog, which) -> {
+                        try {
+                            ContentResolver contentResolver = context.getContentResolver();
+                            DatabaseHandler db = new DatabaseHandler(context);
+
+                            // Lặp qua từng ảnh và xóa
+                            for (String imagePath : selectedImages) {
+                                Uri imageUri = Uri.parse(imagePath);
+                                int rowsDeleted = contentResolver.delete(imageUri, null, null);
+
+                                if (rowsDeleted > 0) {
+                                    int imageId = db.getImageIdFromPath(imagePath);
+                                    if (imageId != -1) {
+                                        db.deletePhoto(imageId);
+                                    }
+                                } else {
+                                    Toast.makeText(context, "Không thể xóa ảnh: " + imagePath, Toast.LENGTH_SHORT).show();
+                                }
+                            }
+                            loadImgAfterDelete();
+
+                            Toast.makeText(context, "Đã xóa các ảnh đã chọn", Toast.LENGTH_SHORT).show();
+                        } catch (SecurityException e) {
+                            Toast.makeText(context, "Permission denied: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                            Toast.makeText(context, "Lỗi khi xóa ảnh: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                        }
+                    })
+                    .setNegativeButton(getString(R.string.negative_button), (dialog, which) -> dialog.dismiss());
+
+            AlertDialog dialog = builder.create();
+            dialog.setOnShowListener(d -> {
+                Button positiveButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
+                Button negativeButton = dialog.getButton(AlertDialog.BUTTON_NEGATIVE);
+                positiveButton.setTextColor(context.getResources().getColor(R.color.black));
+                negativeButton.setTextColor(context.getResources().getColor(R.color.black));
+            });
+
+            dialog.show();
+        }
+    }
+
 
     // Lấy item ở trong menu gắn vào toolbar
     @Override

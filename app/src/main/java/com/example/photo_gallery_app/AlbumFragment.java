@@ -495,4 +495,8 @@ public class AlbumFragment extends Fragment {
                 break;
         }
     }
+
+    public boolean isViewingPhotos() {
+        return isViewingPhotos;
+    }
 }

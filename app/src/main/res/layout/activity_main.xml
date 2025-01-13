@@ -92,6 +92,26 @@
             android:layout_weight="1"
             app:srcCompat="@drawable/ic_delete"
             android:background="@null"/>
+
+        <ImageButton
+            android:id="@+id/btnDelFromAlbum"
+            android:contentDescription="DelFromAlbum"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_weight="1"
+            app:srcCompat="@drawable/ic_remove"
+            android:background="@null"
+            android:visibility="gone"/>
+
+        <ImageButton
+            android:id="@+id/btnAdd"
+            android:contentDescription="Add"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_weight="1"
+            app:srcCompat="@drawable/ic_add"
+            android:background="@null"
+            android:visibility="gone"/>
     </LinearLayout>
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
